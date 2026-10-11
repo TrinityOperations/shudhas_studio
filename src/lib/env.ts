@@ -21,6 +21,15 @@ const serverEnvSchema = z.object({
     .pipe(z.string().min(16).optional()),
   TURNSTILE_SECRET_KEY: z.string().min(1),
   OWNER_EMAIL: z.email(),
+  /**
+   * Web Push (OD-61). All three or none: src/lib/push/config.ts reads them live and push stays
+   * off (no card, no subscriptions, sends are a logged no-op) while any is missing.
+   * Generate a pair with `npx web-push generate-vapid-keys`. The private key is never logged.
+   */
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  /** `mailto:` address or https URL the push services can contact about this sender. */
+  VAPID_SUBJECT: z.string().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

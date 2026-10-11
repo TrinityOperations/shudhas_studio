@@ -46,10 +46,23 @@ Everything else belongs to another slice or the foundation: don't change it. Ask
 - Service worker must not cache admin data responses.
 
 ## Done when
-- [ ] Installs on iPhone and Android
-- [ ] Push arrives within a minute of a new booking
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` pass and CI is green
-- [ ] Works at phone width and by keyboard
+Part a (PWA install + push) is built; part b (dashboard design pass, nav redesign) is a later PR on this issue.
+- [ ] Installs on iPhone and Android (built; to confirm on real phones, see below)
+- [ ] Push arrives within a minute of a new booking (built; to confirm on real phones, see below)
+- [x] `pnpm lint && pnpm typecheck && pnpm test` pass (CI on the PR)
+- [x] Works at phone width and by keyboard (the card is one section with plain buttons)
+- [ ] Part b: dashboard design pass and nav redesign (Gallery under More)
+
+## Testing push on a phone
+Push needs HTTPS and a real device; Playwright covers the install shell only.
+1. Generate VAPID keys once: `npx web-push generate-vapid-keys`. Put them in `.env.local` as `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` (`mailto:` the owner's address).
+2. Expose the Mac over HTTPS with a Cloudflare quick tunnel: `cloudflared tunnel --url http://localhost:3000`. It prints a `https://<random>.trycloudflare.com` URL.
+3. For that run set `NEXT_PUBLIC_SITE_URL` to the tunnel URL and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` to Turnstile's test site key `1x00000000000000000000AA` (with the matching test secret), then `pnpm build && pnpm start`.
+4. On the phone open the tunnel URL, sign in at `/admin/login`.
+5. Install: iPhone Safari → Share → Add to Home Screen; Android Chrome → the Install prompt or ⋮ → Install app.
+6. Open the installed app from the Home Screen (iPhone only delivers push to the installed app), tap **Turn on notifications** on the dashboard home, allow, then **Send a test**: it should land within seconds.
+7. From another device make a booking on the public site (or submit a gallery photo): the push should arrive within a minute. Hide, delete or ignore it; the notification opens the booking.
+8. Afterwards restore `NEXT_PUBLIC_SITE_URL` and the Turnstile keys in `.env.local`.
 
 ## Hand-off to later slices
 None.

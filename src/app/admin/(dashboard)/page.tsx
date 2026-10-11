@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { StatusBadge } from "@/components/admin/bookings/status-badge";
+import { NotificationsCard } from "@/components/admin/push/notifications-card";
 import { buttonVariants } from "@/components/ui/button";
 import { countNewBookings, listUpcomingBookings } from "@/db/queries/bookings";
 import { requireOwner } from "@/lib/auth";
 import { getT } from "@/lib/i18n";
+import { vapidDetails } from "@/lib/push/config";
 import { formatMelbourne } from "@/lib/time";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,6 +21,7 @@ export default async function AdminHomePage() {
     countNewBookings(),
     listUpcomingBookings(5),
   ]);
+  const vapid = vapidDetails();
 
   return (
     <section className="space-y-4">
@@ -78,6 +81,8 @@ export default async function AdminHomePage() {
           </ul>
         )}
       </section>
+
+      {vapid ? <NotificationsCard publicKey={vapid.publicKey} /> : null}
     </section>
   );
 }
