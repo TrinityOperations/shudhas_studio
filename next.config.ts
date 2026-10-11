@@ -5,6 +5,13 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   : undefined;
 
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      // The dashboard's service worker (OD-60): browsers must always revalidate it so a new
+      // version (new cache name, new shell) replaces the old one on the next visit.
+      { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache" }] },
+    ];
+  },
   // src/db/index.ts reads the Supabase CA from disk at runtime; make sure it ships with every
   // server route on Netlify, where the function bundle is built from Next's file trace.
   outputFileTracingIncludes: {

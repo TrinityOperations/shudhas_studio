@@ -6,6 +6,8 @@ import { isOwnerEmail } from "@/lib/owner";
 import { isThemeId, THEME_PREVIEW_HEADER, THEME_PREVIEW_PARAM } from "@/lib/themes/themes";
 
 const LOGIN_PATH = "/admin/login";
+/** Admin paths served without a session: the login page and the PWA's shell (no data in either). */
+const PUBLIC_ADMIN_PATHS = new Set([LOGIN_PATH, "/admin/offline", "/admin/manifest.webmanifest"]);
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
 /**
@@ -65,7 +67,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isLoginPage = pathname === LOGIN_PATH;
 
-  if (!isOwner && !isLoginPage) {
+  if (!isOwner && !PUBLIC_ADMIN_PATHS.has(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = LOGIN_PATH;
     url.search = "";

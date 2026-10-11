@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { bookings, type Booking, type ConsultationType, type NewBooking } from "@/db/schema";
 import type { Locale } from "@/lib/i18n/locale";
 import { getAvailabilityContext, getBookingSettings } from "@/db/queries/availability";
+import { runAfterResponse } from "@/lib/after";
 import { onBookingCreated } from "./hooks";
 import { isSlotAvailable } from "./slots";
 
@@ -124,7 +125,7 @@ export async function createBookingCore(
   }
 
   try {
-    await onBookingCreated(booking);
+    await runAfterResponse(() => onBookingCreated(booking));
   } catch (error) {
     console.error("[booking] onBookingCreated failed", error);
   }
