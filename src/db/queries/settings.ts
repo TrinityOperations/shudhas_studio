@@ -17,11 +17,13 @@ import {
   deliverySettingsSchema,
   defaultSeasonalBannerSettings,
   defaultSocialSettings,
+  defaultThemeSettings,
   generalSettingsSchema,
   homeSettingsSchema,
   legalSettingsSchema,
   seasonalBannerSettingsSchema,
   socialSettingsSchema,
+  themeSettingsSchema,
   type AboutSettings,
   type AnnouncementSettings,
   type ContactSettings,
@@ -32,6 +34,7 @@ import {
   type LegalSettings,
   type SeasonalBannerSettings,
   type SocialSettings,
+  type ThemeSettings,
 } from "@/lib/validators/settings";
 
 /** Studio name and taglines. Missing or malformed rows fall back to defaults. */
@@ -149,5 +152,17 @@ export async function getHomeSettingsFull(): Promise<HomeSettings> {
       return parsed.success ? parsed.data : defaultHomeSettings;
     },
     defaultHomeSettings,
+  );
+}
+
+/** The seasonal theme choice and schedule (slice #13); resolve it with resolveActiveTheme. */
+export async function getThemeSettings(): Promise<ThemeSettings> {
+  return readSetting(
+    "theme",
+    (stored) => {
+      const parsed = themeSettingsSchema.safeParse(stored);
+      return parsed.success ? parsed.data : defaultThemeSettings;
+    },
+    defaultThemeSettings,
   );
 }

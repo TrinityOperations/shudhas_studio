@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { BannerForm } from "@/components/admin/content/banner-form";
 import { getSeasonalBannerSettings } from "@/db/queries/settings";
 import { requireOwner } from "@/lib/auth";
@@ -17,6 +18,11 @@ export default async function BannerPage() {
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">{t("admin.banner.title")}</h1>
         <p className="text-muted-foreground text-sm">{t("admin.banner.description")}</p>
+        <p className="text-sm">
+          <Link href="/admin/settings/theme" className="underline underline-offset-4">
+            {t("admin.banner.themeLink")}
+          </Link>
+        </p>
       </header>
       <BannerForm defaultValues={banner} />
     </section>

@@ -10,6 +10,7 @@ import {
   getHomeSettings,
   getSeasonalBannerSettings,
   getSocialSettings,
+  getThemeSettings,
 } from "./settings";
 
 beforeEach(() => findFirst.mockReset());
@@ -53,5 +54,20 @@ describe("home page settings readers", () => {
     });
     findFirst.mockResolvedValue({ key: "about", value: { story: "Hand made." } });
     expect(await getAboutSettings()).toEqual({ story: "Hand made.", storyBn: "" });
+  });
+});
+
+describe("getThemeSettings (slice #13)", () => {
+  it("returns automatic + empty schedule for a missing or malformed row", async () => {
+    findFirst.mockResolvedValue(undefined);
+    expect(await getThemeSettings()).toEqual({ manual: null, schedule: [] });
+    findFirst.mockResolvedValue({ key: "theme", value: { manual: "halloween" } });
+    expect(await getThemeSettings()).toEqual({ manual: null, schedule: [] });
+  });
+
+  it("returns the stored choice and schedule", async () => {
+    const schedule = [{ themeId: "eid", start: "2026-03-20", end: "2026-03-30" }];
+    findFirst.mockResolvedValue({ key: "theme", value: { manual: "wedding", schedule } });
+    expect(await getThemeSettings()).toEqual({ manual: "wedding", schedule });
   });
 });

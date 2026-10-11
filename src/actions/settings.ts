@@ -6,18 +6,23 @@ import { db } from "@/db";
 import { siteSettings } from "@/db/schema";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { requireOwner } from "@/lib/auth";
+import { getSeasonalBannerSettings, getThemeSettings } from "@/db/queries/settings";
 import type { Tx } from "@/lib/products";
 import {
   announcementSettingsSchema,
+  bannerTextSchema,
   contentSettingsSchema,
   generalSettingsSchema,
   seasonalBannerSettingsSchema,
+  themeChoiceSchema,
+  themeScheduleSchema,
   type AnnouncementSettings,
   type ContentSettingsInput,
   type ContentSettingsValues,
   type GeneralSettings,
   type GeneralSettingsInput,
   type SeasonalBannerSettings,
+  type ThemeSettings,
 } from "@/lib/validators/settings";
 
 /**
@@ -112,4 +117,51 @@ export async function updateSeasonalBannerSettings(
   await upsertSetting(db, "seasonal_banner", parsed.data);
   revalidatePath("/");
   return ok(parsed.data);
+}
+
+/**
+ * OD-35: the picker's one click. Only `manual` changes; the schedule stays as saved, so a click
+ * never wipes it. `null` means automatic (the schedule, else everyday).
+ */
+export async function setThemeChoice(input: unknown): Promise<ActionResult<ThemeSettings>> {
+  const parsed = themeChoiceSchema.safeParse(input);
+  if (!parsed.success) return fail("errors.invalidInput");
+  await requireOwner();
+  const current = await getThemeSettings();
+  const next: ThemeSettings = { ...current, manual: parsed.data };
+  await upsertSetting(db, "theme", next);
+  revalidatePath("/", "layout");
+  return ok(next);
+}
+
+/** OD-35: the season schedule. Only `schedule` changes; the manual choice stays as saved. */
+export async function updateThemeSchedule(input: unknown): Promise<ActionResult<ThemeSettings>> {
+  const parsed = themeScheduleSchema.safeParse(input);
+  // Row errors are rendered by the form's own resolver; the action only needs to refuse.
+  if (!parsed.success) return fail("errors.invalidInput");
+  await requireOwner();
+  const current = await getThemeSettings();
+  const next: ThemeSettings = { ...current, schedule: parsed.data };
+  await upsertSetting(db, "theme", next);
+  revalidatePath("/", "layout");
+  return ok(next);
+}
+
+/**
+ * "Use this text" on the theme picker: writes a theme's suggested label and headline (EN and
+ * BN) into the seasonal banner and nothing else; the switch, button and link stay as they are.
+ */
+export async function applyBannerText(
+  input: unknown,
+): Promise<ActionResult<SeasonalBannerSettings>> {
+  const parsed = bannerTextSchema.safeParse(input);
+  if (!parsed.success) {
+    return fail("errors.invalidInput", z.flattenError(parsed.error).fieldErrors);
+  }
+  await requireOwner();
+  const current = await getSeasonalBannerSettings();
+  const next: SeasonalBannerSettings = { ...current, ...parsed.data };
+  await upsertSetting(db, "seasonal_banner", next);
+  revalidatePath("/");
+  return ok(next);
 }

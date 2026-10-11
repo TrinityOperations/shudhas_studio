@@ -84,7 +84,6 @@
   --card-foreground: var(--ink);
   --popover: var(--white);
   --popover-foreground: var(--ink);
-  --primary: var(--brand-accent);
   --primary-foreground: var(--white);
   --secondary: var(--white);
   --secondary-foreground: var(--ink);
@@ -95,8 +94,6 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: var(--line);
   --input: var(--line);
-  --ring: var(--brand-accent);
-  --chart-1: var(--brand-accent);
   --chart-2: var(--mark);
   --chart-3: var(--ink-soft);
   --chart-4: var(--muted-text);
@@ -104,11 +101,25 @@
   --radius: 0.625rem;
   --sidebar: var(--white);
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--brand-accent);
   --sidebar-primary-foreground: var(--white);
   --sidebar-accent: var(--mist);
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--line);
+}
+
+/*
+ * Everything derived from the accent is declared again under [data-theme] so it re-resolves
+ * inside a themed wrapper (slice #13): a custom property set on :root is inherited as its
+ * computed value, so without this a theme would recolour the footer (bg-brand) but not the
+ * buttons (bg-primary). The public layout and the home page editor set data-theme plus an
+ * inline --brand-accent; the dashboard never does, so it keeps Bengal green.
+ */
+:root,
+[data-theme] {
+  --primary: var(--brand-accent);
+  --ring: var(--brand-accent);
+  --chart-1: var(--brand-accent);
+  --sidebar-primary: var(--brand-accent);
   --sidebar-ring: var(--brand-accent);
 }
 

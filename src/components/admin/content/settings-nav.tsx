@@ -10,6 +10,7 @@ const SECTIONS: { href: string; key: MessageKey }[] = [
   { href: "/admin/settings/content", key: "admin.settings.nav.content" },
   { href: "/admin/settings/announcement", key: "admin.settings.nav.announcement" },
   { href: "/admin/settings/banner", key: "admin.settings.nav.banner" },
+  { href: "/admin/settings/theme", key: "admin.settings.nav.theme" },
   { href: "/admin/settings/faqs", key: "admin.settings.nav.faqs" },
   { href: "/admin/settings/testimonials", key: "admin.settings.nav.testimonials" },
   { href: "/admin/settings/account", key: "admin.settings.nav.account" },

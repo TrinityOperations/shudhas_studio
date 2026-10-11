@@ -4,7 +4,9 @@ import { SettingsForm } from "@/components/admin/settings-form";
 import { buttonVariants } from "@/components/ui/button";
 import { getGeneralSettings } from "@/db/queries/settings";
 import { requireOwner } from "@/lib/auth";
-import { getT } from "@/lib/i18n";
+import { getLocale, getT } from "@/lib/i18n";
+import { getActiveTheme } from "@/lib/themes/active";
+import { describeActiveTheme } from "@/lib/themes/describe";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -13,7 +15,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SettingsPage() {
   await requireOwner();
-  const [t, settings] = await Promise.all([getT(), getGeneralSettings()]);
+  const [t, locale, settings, active] = await Promise.all([
+    getT(),
+    getLocale(),
+    getGeneralSettings(),
+    getActiveTheme(),
+  ]);
 
   return (
     <section className="space-y-6">
@@ -25,6 +32,19 @@ export default async function SettingsPage() {
         <p className="text-sm">{t("admin.editor.entryHint")}</p>
         <Link href="/admin/home-editor" prefetch={false} className={buttonVariants()}>
           {t("admin.editor.entry")}
+        </Link>
+      </div>
+      <div
+        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4"
+        data-testid="theme-card"
+      >
+        <p className="text-sm">
+          <span className="font-medium">{t("admin.themes.title")}</span>
+          <span aria-hidden> · </span>
+          {describeActiveTheme(active, t, locale)}
+        </p>
+        <Link href="/admin/settings/theme" className={buttonVariants({ variant: "outline" })}>
+          {t("admin.themes.entry")}
         </Link>
       </div>
       <SettingsForm defaultValues={settings} />

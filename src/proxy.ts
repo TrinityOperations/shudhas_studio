@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv } from "@/lib/env.public";
 import { isLocale, LOCALE_COOKIE, LOCALE_HEADER } from "@/lib/i18n/locale";
 import { isOwnerEmail } from "@/lib/owner";
+import { isThemeId, THEME_PREVIEW_HEADER, THEME_PREVIEW_PARAM } from "@/lib/themes/themes";
 
 const LOGIN_PATH = "/admin/login";
 const ONE_YEAR = 60 * 60 * 24 * 365;
@@ -12,13 +13,20 @@ const ONE_YEAR = 60 * 60 * 24 * 365;
  * 1. `?lang=en|bn` on any page (PW-80, hreflang): the request is rendered in that language and
  *    the cookie is set for the pages after it. It is served, never redirected, so a crawler
  *    (which keeps no cookie) gets Bengali at the Bengali address.
- * 2. /admin: refreshes the Supabase session cookie and keeps non-owners out. This is the first
+ * 2. `?theme=<id>` (OD-35 preview): forwarded as a request header that only ever comes from a
+ *    valid value here (anything the client sent is overwritten or dropped). The public layout
+ *    honours it for the signed-in owner only.
+ * 3. /admin: refreshes the Supabase session cookie and keeps non-owners out. This is the first
  *    gate only: every admin page and action also calls requireOwner() (src/lib/auth.ts).
  */
 export async function proxy(request: NextRequest) {
   const lang = request.nextUrl.searchParams.get("lang");
   const requestedLocale = isLocale(lang) ? lang : null;
   if (requestedLocale) request.headers.set(LOCALE_HEADER, requestedLocale);
+
+  const theme = request.nextUrl.searchParams.get(THEME_PREVIEW_PARAM);
+  if (isThemeId(theme)) request.headers.set(THEME_PREVIEW_HEADER, theme);
+  else request.headers.delete(THEME_PREVIEW_HEADER);
 
   let response = NextResponse.next({ request });
   if (requestedLocale) {
