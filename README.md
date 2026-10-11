@@ -12,7 +12,7 @@ Website and owner dashboard for **Shudha's Studio**, a Melbourne personalised-gi
 
 ## Current state (11 October 2026)
 
-**10 of 16 slices are built and merged.** The public site has its final look, a working catalogue, booking, custom orders, a wishlist and its content pages. The owner can manage products, availability, bookings, site content and the home page photos from the dashboard. Nothing is online yet: hosting is set up but not connected, and the domain is bought at launch.
+**13 of 16 slices are built and merged.** The public site has its final look, a working catalogue, booking, custom orders, a wishlist, a customer gallery, seasonal colour themes and its content pages, in English and Bengali. The owner can manage products, availability, bookings, site content, gallery photos, the seasonal theme and the home page photos from the dashboard. Nothing is online yet: hosting is set up but not connected, and the domain is bought at launch.
 
 | # | Slice | Status |
 | --- | --- | --- |
@@ -26,20 +26,19 @@ Website and owner dashboard for **Shudha's Studio**, a Melbourne personalised-gi
 | 8 | Wishlist | Done |
 | 9 | Home page and visual design | Done |
 | 10 | Content pages, site settings and home page editor | Done |
-| 11 | English / Bengali completion | Next (needs the client) |
-| 12 | Customer gallery (happy customers) | Not started |
-| 13 | Seasonal theming | Not started |
-| 14 | PWA dashboard, push notifications and dashboard design pass | Not started |
+| 11 | English / Bengali completion | Done |
+| 12 | Customer gallery (happy customers) | Done |
+| 13 | Seasonal theming | Done |
+| 14 | PWA dashboard, push notifications and dashboard design pass | Next |
 | 15 | Performance, accessibility and SEO pass | Not started |
 | 16 | Owner's guide, training and launch | Not started |
 
 **Known gaps until later slices land**
-- The "Happy customers" footer link (`/gallery`) shows "not found" until #12.
-- The seasonal banner uses the everyday colour until #13 adds seasonal themes.
-- Some Bengali text still needs the owner's review (#11).
-- The dashboard uses the site's colours and fonts but hasn't had its own design pass (#14).
+- The dashboard can't be installed on a phone and sends no push notifications yet (#14).
+- The dashboard uses the site's colours and fonts but hasn't had its own design pass; on phones its menu wraps to two rows (#14).
+- Bengali text is being reviewed in rounds; some lines may still read awkwardly.
 
-**Placeholders until the client sends them:** logo (text wordmark for now), her portrait and story, WhatsApp number (the chat button stays hidden until one is set), and real opening hours (seeded as Mon–Sat 10:00–18:00). She can fill in all of these herself from the dashboard.
+**Waiting on the client:** logo (text wordmark for now), her portrait and story, WhatsApp number (the chat button stays hidden until one is set), real opening hours (seeded as Mon–Sat 10:00–18:00), which seasons she wants, and the wording of the gallery consent line. She can fill in most of these herself from the dashboard.
 
 ---
 
@@ -61,6 +60,8 @@ Website and owner dashboard for **Shudha's Studio**, a Melbourne personalised-gi
 | `/faq` | Questions and answers |
 | `/contact` | Contact form; the message is saved and emailed to the owner |
 | `/privacy`, `/terms` | Legal pages, edited by the owner |
+| `/gallery` | Happy customers: approved customer photos, and a "Share your photo" form. Nothing shows until the owner approves it |
+| Any page with `?lang=bn` | The same page in Bengali (the "বাংলা" switch in the header does the same and remembers it) |
 
 **Owner dashboard** (`/admin`, owner only)
 
@@ -71,7 +72,9 @@ Website and owner dashboard for **Shudha's Studio**, a Melbourne personalised-gi
 | `/admin/products` | Add, edit, reorder photos, publish, archive, preview; categories, occasions and tags under Taxonomy |
 | `/admin/availability` | Weekly hours, blocked dates, slot length, notice and booking horizon |
 | `/admin/bookings` | Upcoming, past and cancelled bookings, calendar view, search; confirm, reschedule, cancel, mark done, private notes, one-tap WhatsApp reply |
-| `/admin/settings` | General (studio name, tagline), Content (her story, delivery note, contact email and WhatsApp number, social links, privacy and terms), Announcement, Seasonal banner, FAQs, Testimonials, Account (password change) |
+| `/admin/gallery` | Customer photos waiting for review, approved and hidden; approve, hide or delete. The menu shows how many are waiting |
+| `/admin/settings` | General (studio name, tagline), Content (her story, delivery note, contact email and WhatsApp number, social links, privacy and terms), Announcement, Seasonal banner, Theme, FAQs, Testimonials, Account (password change) |
+| `/admin/settings/theme` | Pick the season's colour for the public site (Everyday, Eid, Pohela Boishakh, Wedding season, Christmas and New Year, Mother's Day, Valentine's Day) or schedule seasons by date. The dashboard always stays green |
 
 **Behind the scenes**
 - Emails for every booking step (customer and owner), with calendar (`.ics`) attachments, in English or Bengali.
@@ -107,70 +110,62 @@ cd shudhas_studio
 ```
 Avoid folder names with apostrophes or spaces; they break some tools.
 
-### 3. Create your own Supabase dev project
-Each developer works against their **own free Supabase project**, never the team's shared one. Create one at [supabase.com](https://supabase.com) (region: Sydney). Only the lead applies migrations to the shared project.
+### 3. Add the environment file from Sayek
+The team runs against **Sayek's Supabase project**, so everyone sees the same products, photos, bookings and settings. You don't create a database of your own.
 
-### 4. Add your environment file
-Copy the template:
-```
-cp .env.example .env.local        # macOS / Linux
-copy .env.example .env.local      # Windows (Command Prompt)
-```
-Fill in `.env.local` from **your dev project**. Copy and paste keys; don't retype them.
+1. Get the `.env.local` file from Sayek (never by public chat or email; a private message or the password vault).
+2. Put it in the project's top folder (next to `package.json`), named exactly `.env.local`. On a Mac, Finder hides files starting with a dot: press **Cmd+Shift+.** to see it.
+3. Check it's in the right place:
+   ```
+   ls -a .env.local        # macOS / Linux: prints .env.local
+   dir /a .env.local       # Windows
+   ```
 
-| Key | Where it comes from |
+`.env.local` holds private keys with full access to the shared database and storage. It is gitignored: never commit it, paste it in chat, screenshot it or share it further.
+
+What's in it, for reference (you don't need to change anything):
+
+| Key | What it is |
 | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → API Keys → Publishable key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → API Keys → Secret key, from the **same** project (**private**) |
-| `DATABASE_URL` | Supabase → Connect → Transaction pooler, port 6543 (**private**) |
-| `DIRECT_DATABASE_URL` | Session pooler, port 5432. Used only for migrations (**private**) |
-| `DB_POOL_MAX` | Optional. Max database connections per process (default 10) |
-| `RESEND_API_KEY` | resend.com → API Keys (**private**). Anything not starting with `re_` means emails are only logged |
-| `EMAIL_FROM` | Optional. Leave empty to use Resend's test sender until the studio domain exists |
-| `EMAIL_DRY_RUN` | Optional. `1` logs emails instead of sending them |
-| `CRON_SECRET` | Optional. Protects the reminder job. **At least 16 characters**, or the app won't start. Make one with `openssl rand -hex 32` |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Keep Cloudflare's always-pass test keys from `.env.example` for local work and e2e |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | The shared Supabase project's address and public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Secret key for uploads to Storage (**private**) |
+| `DATABASE_URL` / `DIRECT_DATABASE_URL` | Database connection (runtime) and the one used only for migrations (**private**) |
+| `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_DRY_RUN` | Email sending. Until the studio's domain exists, Resend only delivers to the Resend account owner (Sayek) |
+| `CRON_SECRET` | Protects the reminder job. Must be at least 16 characters, or the app won't start |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Cloudflare's always-pass test keys for local work |
 | `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` |
 | `OWNER_EMAIL` | The one email allowed into `/admin` |
-| `E2E_OWNER_EMAIL` / `E2E_OWNER_PASSWORD` | Optional. The owner login used by browser tests; keep it the same account as `OWNER_EMAIL` |
+| `E2E_OWNER_EMAIL` / `E2E_OWNER_PASSWORD` | The owner login used by browser tests |
 
-`.env.local` is gitignored. Never commit it, paste it in chat, or screenshot it.
-
-While Resend has no verified domain, it only delivers to the email address that owns the Resend account.
-
-### 5. Install dependencies
+### 4. Install dependencies
 ```
 pnpm install
 ```
 
-### 6. Set up the database
-```
-pnpm db:migrate
-pnpm db:seed
-```
-Both are safe to re-run. The seed adds starting settings, opening hours (Mon–Sat 10:00–18:00), 10 categories, 9 occasions, the `signature` tag and a starter FAQ, with Bengali names. The owner can change all of them in the dashboard.
-
-### 7. Create the owner account
-Supabase → Authentication → Users → Add user → Create new user, using the `OWNER_EMAIL` address, a strong password and **Auto Confirm User** ticked. Then turn off **Allow new users to sign up** under Authentication → Sign In / Providers.
-
-### 8. Start the site
+### 5. Start the site
 ```
 pnpm dev
 ```
 Open **http://localhost:3000**. The first page load takes 10–20 seconds while it compiles. Stop the server with **Ctrl+C**.
 
-### 9. Optional: load demo content
-An empty database shows a mostly empty home page. To see the site as the client will, load the demo pack (18 products with photos, home page photos, a hero video, sample quotes and gallery tiles):
-```
-pnpm demo:seed
-pnpm demo:clear      # removes exactly what demo:seed added
-```
-Only use these on a development database. `demo:clear` needs the `scripts/demo-content/manifest.json` file that `demo:seed` writes on the same computer, and it deletes the home, announcement and seasonal banner settings rather than restoring earlier values.
+You should see the same home page as Sayek: the demo products, photos, hero video, quotes and gallery. There is nothing to migrate or seed; the database is already set up.
+
+### 6. Sign in to the dashboard (optional)
+Go to **http://localhost:3000/admin** and sign in with the `OWNER_EMAIL` address and the owner password (the `E2E_OWNER_PASSWORD` value in your `.env.local`, or ask Sayek).
+
+### Working on the shared database: rules
+Everyone's changes land in the same database, so:
+- **Anything you change is real for everyone.** Products you add, bookings you make, photos you approve, the theme you pick: the whole team sees it. Put "TEST" in the name of anything you create, and delete it when you're done.
+- **Don't run** `pnpm db:migrate`, `pnpm db:seed`, `pnpm demo:seed` or `pnpm demo:clear`. Sayek runs these when the schema or demo content changes. `demo:clear` in particular would wipe the demo content for everyone.
+- **Browser tests (`pnpm e2e`) and the database race tests write test data** into the shared database. Run them only when you need to, and tell Sayek.
+- **Booking and contact emails** go to Sayek's inbox (Resend's test mode), not to the email you type in a form.
+- If the site suddenly shows errors after a `git pull`, the database may need a new migration: tell Sayek rather than running it yourself.
 
 ---
 
 ## What you can test right now
+
+Rows that change data change it for the whole team: name what you create "TEST" and remove it afterwards.
 
 | # | Do this | Expected |
 | --- | --- | --- |
@@ -188,6 +183,10 @@ Only use these on a development database. `demo:clear` needs the `scripts/demo-c
 | 12 | `/admin/availability` → block tomorrow | No slots for tomorrow on `/book` |
 | 13 | Dashboard → "Edit home page" → change a photo → Save | The new photo shows on the home page; Discard instead leaves it unchanged |
 | 14 | Settings → Content → add a WhatsApp number | The WhatsApp chat button appears on public pages |
+| 15 | `/gallery` → "Share your photo" → send one | Thank-you message; it doesn't appear on `/gallery` yet |
+| 16 | `/admin/gallery` → approve that photo | It appears on `/gallery` and in "Happy customers" on the home page; delete it afterwards |
+| 17 | Settings → Theme → pick Eid → open the home page | Buttons, banner and footer turn indigo; the dashboard stays green. Set it back to Everyday or Automatic |
+| 18 | Open any page with `?lang=bn` | The page in Bengali, with Bengali dates on `/book` |
 
 Automated checks:
 ```
@@ -196,7 +195,9 @@ pnpm format:check                             # also checked in CI
 pnpm exec playwright install chromium         # once per computer
 pnpm e2e                                      # browser tests; owner tests need E2E_OWNER_EMAIL / E2E_OWNER_PASSWORD
 ```
-Database race tests (bookings and reminders) run only against a real database you don't mind being written to:
+`pnpm lint`, `typecheck`, `test` and `format:check` don't touch the database. `pnpm e2e` does: it creates test bookings, products and gallery photos in the shared database, so run it only when you need to.
+
+Database race tests (bookings and reminders) write to the database too. **Don't run them against the shared database**; Sayek runs them on a separate test database:
 ```
 RUN_DB_TESTS=1 pnpm vitest run src/lib/booking/concurrency.db.test.ts src/lib/booking/reminders.db.test.ts
 ```
@@ -214,11 +215,14 @@ pnpm test            # unit tests (Vitest)
 pnpm e2e             # browser tests (Playwright)
 pnpm format          # auto-format with Prettier
 pnpm format:check    # check formatting without changing files
+pnpm db:studio       # browse the shared database in your browser (careful: edits are real)
+```
+Sayek only (they change the shared database for everyone):
+```
 pnpm db:generate     # create a migration after editing src/db/schema.ts
 pnpm db:migrate      # apply migrations
 pnpm db:seed         # seed starting data
-pnpm db:studio       # browse the database in your browser
-pnpm demo:seed       # load demo content (dev database only)
+pnpm demo:seed       # load demo content
 pnpm demo:clear      # remove demo content
 ```
 
@@ -228,16 +232,17 @@ pnpm demo:clear      # remove demo content
 
 | Problem | Fix |
 | --- | --- |
-| Login always says "wrong email or password" | Re-copy the Supabase publishable key into `.env.local` (don't retype), then restart `pnpm dev`. Check the user is confirmed in Supabase → Users and matches `OWNER_EMAIL`. Check the terminal running `pnpm dev` for the real error |
-| App won't start, error mentions `CRON_SECRET` | It must be at least 16 characters, or left empty |
-| Uploads fail with "Invalid API key" | `SUPABASE_SERVICE_ROLE_KEY` is from a different Supabase project |
-| Hero video upload is refused | Run `pnpm db:migrate`; migration 0004 lets the `site-images` bucket accept mp4 files up to 10 MB |
-| Booking or contact emails don't arrive | Resend's test sender only delivers to the Resend account owner's email. Check the terminal for dry-run logs |
+| Home page is empty, or every page errors | `.env.local` is missing or in the wrong folder. It must sit next to `package.json`, named exactly `.env.local`. Restart `pnpm dev` after moving it |
+| Login always says "wrong email or password" | Check you're using the `OWNER_EMAIL` address and the current owner password; ask Sayek if it changed. Check the terminal running `pnpm dev` for the real error |
+| App won't start, error mentions `CRON_SECRET` or another key | Your `.env.local` is out of date or was changed; get the current one from Sayek |
+| Uploads fail with "Invalid API key" | Your `.env.local` is out of date; get the current one from Sayek |
+| Errors right after a `git pull` that mention a column, table or bucket | The shared database needs the new migration. Tell Sayek; don't run it yourself |
+| Booking or contact emails don't arrive | They go to Sayek's inbox while Resend is in test mode, not to the address typed in the form. Check the terminal for dry-run logs |
 | Changes to `.env.local` don't take effect | Restart `pnpm dev`; it only reads the file at startup |
 | First page is very slow | Normal on the first load; Turbopack is compiling |
 | `Port 3000 is in use` | Another `pnpm dev` is running. Stop it, or use `pnpm dev -p 3001` |
 | `pnpm: command not found` | Run `corepack enable`, then open a new terminal |
-| Site stopped working after a quiet week | Supabase's free plan pauses inactive projects. Restore it from the Supabase dashboard |
+| Site stopped working after a quiet week | Supabase's free plan pauses inactive projects. Tell Sayek; he restores it from the Supabase dashboard |
 | Git says another process is running | Delete the stale lock: `rm .git/index.lock` |
 
 ---
@@ -268,6 +273,7 @@ docs/                    SRS, workflow, slice cards, design and decisions log
 
 ## Team workflow
 Full rules in [`docs/WORKFLOW.md`](docs/WORKFLOW.md). In short:
+- Everyone runs against the same Supabase project (see "Working on the shared database: rules" above).
 - One slice = one issue = one branch = one pull request. Branch as `feat/<issue>-<name>` from the latest `main`; never commit to `main`.
 - Stay inside your slice's files (listed in its card).
 - Pull request title `feat: <slice name> (#N)` with `Closes #N` in the description, then **Squash and merge**.
