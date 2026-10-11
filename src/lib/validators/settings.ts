@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { THEME_IDS } from "@/lib/themes/themes";
 import { whatsappNumberSchema } from "./common";
 
 // One schema per site_settings key. The row's jsonb value must satisfy its schema.
@@ -227,3 +228,59 @@ export const accountPasswordSchema = z
     path: ["confirm"],
   });
 export type AccountPasswordValues = z.infer<typeof accountPasswordSchema>;
+
+/** "yyyy-MM-dd", a Melbourne civil date (no time zone). */
+const CIVIL_DATE = /^\d{4}-\d{2}-\d{2}$/;
+export const civilDateSchema = z
+  .string()
+  .regex(CIVIL_DATE, "errors.invalidInput")
+  .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), "errors.invalidInput");
+
+export const THEME_SCHEDULE_MAX = 12;
+
+/** One scheduled season: the theme applies from `start` to `end`, both inclusive. */
+export const themeScheduleEntrySchema = z
+  .object({
+    themeId: z.enum(THEME_IDS, { message: "errors.invalidInput" }),
+    start: civilDateSchema,
+    end: civilDateSchema,
+  })
+  .superRefine((entry, ctx) => {
+    if (entry.end < entry.start) {
+      ctx.addIssue({ code: "custom", message: "errors.themeEndBeforeStart", path: ["end"] });
+    }
+  });
+export type ThemeScheduleEntry = z.infer<typeof themeScheduleEntrySchema>;
+
+/**
+ * `site_settings` key `theme` (PW-90, PW-91, OD-35). The live theme is resolved server-side in
+ * src/lib/themes/resolve.ts: a schedule entry covering today's Melbourne date (the later start
+ * wins on overlap), else the manual choice, else everyday.
+ */
+export const themeSettingsSchema = z.object({
+  manual: z.enum(THEME_IDS, { message: "errors.invalidInput" }).nullable().default(null),
+  schedule: z.array(themeScheduleEntrySchema).max(THEME_SCHEDULE_MAX).default([]),
+});
+export type ThemeSettings = z.infer<typeof themeSettingsSchema>;
+export type ThemeSettingsInput = z.input<typeof themeSettingsSchema>;
+export const defaultThemeSettings: ThemeSettings = { manual: null, schedule: [] };
+
+/** The picker's one-click choice: a theme id, or null for automatic (schedule, else everyday). */
+export const themeChoiceSchema = z.enum(THEME_IDS, { message: "errors.invalidInput" }).nullable();
+
+/** The schedule form on its own; the action keeps the manual choice as it is. */
+export const themeScheduleSchema = z.array(themeScheduleEntrySchema).max(THEME_SCHEDULE_MAX);
+export type ThemeScheduleInput = z.input<typeof themeScheduleSchema>;
+/** The schedule form's shape (React Hook Form needs an object at the root). */
+export const themeScheduleFormSchema = z.object({ schedule: themeScheduleSchema });
+export type ThemeScheduleFormValues = z.input<typeof themeScheduleFormSchema>;
+export type ThemeScheduleFormOutput = z.output<typeof themeScheduleFormSchema>;
+
+/** "Use this text" on the theme picker: only the banner's label and headline change. */
+export const bannerTextSchema = z.object({
+  label: z.string().trim().max(60, "errors.tooLong"),
+  labelBn: z.string().trim().max(60, "errors.tooLong"),
+  headline: z.string().trim().max(160, "errors.tooLong"),
+  headlineBn: z.string().trim().max(160, "errors.tooLong"),
+});
+export type BannerText = z.infer<typeof bannerTextSchema>;
