@@ -7,8 +7,10 @@ import type { SeasonalBannerSettings } from "@/lib/validators/settings";
 /**
  * Home section 7: one big accent tag; hidden until the owner turns it on (#10, colour in #13).
  * The season's motifs (TagArtwork) sit behind the text block, which is marked so they never
- * reach it: they live right of the block (the tag's right third on desktop), on the hole side,
- * in the hangers and in the band.
+ * reach it: the block is measured by its lines and the button, so motifs and hangers may sit
+ * beside short lines; from lg the block is centred, with the signature motif to its right and
+ * the hangers to its left, and below lg the extra bottom padding leaves a row for motifs
+ * between the button and the band.
  */
 export async function SeasonalBanner({ banner }: { banner: SeasonalBannerSettings }) {
   if (!banner.enabled) return null;
@@ -19,7 +21,7 @@ export async function SeasonalBanner({ banner }: { banner: SeasonalBannerSetting
   return (
     <section aria-label={label} className="mx-auto w-full max-w-7xl px-4 py-10 lg:px-6 lg:py-14">
       <div
-        className="bg-primary text-ivory relative mx-auto max-w-[1040px] px-10 py-14 text-center [clip-path:polygon(44px_0,100%_0,100%_100%,44px_100%,0_50%)] lg:px-[72px] lg:py-20 lg:pl-[140px] lg:[clip-path:polygon(80px_0,100%_0,100%_100%,80px_100%,0_50%)]"
+        className="bg-primary text-ivory relative mx-auto max-w-[1040px] px-10 pt-14 pb-20 text-center [clip-path:polygon(44px_0,100%_0,100%_100%,44px_100%,0_50%)] lg:px-[72px] lg:py-20 lg:pl-[140px] lg:[clip-path:polygon(80px_0,100%_0,100%_100%,80px_100%,0_50%)]"
         data-testid="seasonal-tag"
       >
         <TagArtwork />
@@ -31,11 +33,11 @@ export async function SeasonalBanner({ banner }: { banner: SeasonalBannerSetting
           aria-hidden
           className="bg-mark absolute top-1/2 left-14 z-10 hidden h-[1.5px] w-24 origin-left -translate-y-1/2 -rotate-[28deg] lg:block"
         />
-        {/* The text block: centred and full width on phones; from lg a 560px block anchored
-            after the hole, so the right third of the tag is free for the signature motif. */}
+        {/* The text block: centred, full width on phones and 560px from lg (motifs may sit
+            beside its lines; the signature motif to its right, the hangers to its left). */}
         <div
-          className="relative z-10 mx-auto max-w-3xl lg:mx-0 lg:max-w-[560px]"
-          data-artwork-exclude="column"
+          className="relative z-10 mx-auto max-w-3xl lg:max-w-[560px]"
+          data-artwork-exclude="lines"
           data-testid="seasonal-tag-text"
         >
           <p className="text-ivory/88">{label}</p>

@@ -80,12 +80,17 @@
   --mark: #c2402a;
   --scrim: #1a1613;
   --font-heading-stack: var(--font-eczar), Georgia, serif;
-  /* The collapsed public header: the top row at 44px content + 2 × 10px padding, plus the
-     links row (40px including its hairline, desktop only) and the header's 1px bottom border:
-     105px on desktop, 65px on phones. Sticky things that pin below the header (the signature
-     panel) and the editor's bar on desktop use --header-collapsed-height. */
-  --header-links-height: 40px;
+  /* The public header (header-chrome.tsx). Its sticky box keeps one height in both states, so
+     nothing below it moves when it collapses: the expanded top row, the links row (40px
+     including its hairline, from lg) and the bar's 1px bottom border. Only the bar's top row
+     changes height inside it, between two fixed heights (80px, or 86px from 1400px where the
+     Book pill is taller, and 64px); the rest of the box is transparent and lets clicks through.
+     --header-collapsed-height is the visible collapsed bar from lg (105px): sticky things that
+     pin below the header (the signature panel) and the editor's bar use it. */
+  --header-top-height: 80px;
   --header-top-collapsed-height: 64px;
+  --header-links-height: 40px;
+  --header-box-height: calc(var(--header-top-height) + 1px);
   --header-collapsed-height: calc(
     var(--header-top-collapsed-height) + var(--header-links-height) + 1px
   );
@@ -117,6 +122,17 @@
   --sidebar-accent: var(--mist);
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--line);
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-box-height: calc(var(--header-top-height) + var(--header-links-height) + 1px);
+  }
+}
+@media (min-width: 1400px) {
+  :root {
+    --header-top-height: 86px;
+  }
 }
 
 /*

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HeaderMark } from "./header-mark";
 
 type Props = {
   studioName: string;
@@ -9,9 +10,12 @@ type Props = {
 
 /**
  * The centred mark + name. The mark is an "S" until Shudha's logo file arrives: [placeholder].
- * The name fades when the header is collapsed (header-chrome.tsx sets data-collapsed). On desktop
- * the name shows from lg (Eczar 24, 30 from 1400px): the links moved to their own row, so
- * nothing pushes the centre off any more.
+ * When the header collapses (header-chrome.tsx sets data-collapsed) the name only fades: it is
+ * never clipped or narrowed. It also leaves the brand's layout (absolute), placed so it stays
+ * exactly where it was: its centre sits (mark + gap) / 2 right of the brand's centre in both
+ * states, so collapsed it is centred at the mark's width plus half the 12px gap from the brand's
+ * left edge. The brand then shrinks to the mark, which HeaderMark animates to the centre. On
+ * desktop the name shows from lg (Eczar 24, 30 from 1400px).
  */
 export function LogoMark({ studioName, homeLabel, size = "desktop" }: Props) {
   const desktop = size === "desktop";
@@ -23,19 +27,20 @@ export function LogoMark({ studioName, homeLabel, size = "desktop" }: Props) {
       data-testid="site-logo"
       data-artwork-exclude="brand"
     >
-      <span
-        aria-hidden
-        data-placeholder="logo"
+      <HeaderMark
         className={`font-heading border-mark text-mark bg-ivory grid shrink-0 place-items-center rounded-full border-[1.5px] leading-none ${
           desktop ? "size-10 text-xl" : "size-8 text-base"
         }`}
       >
         S
-      </span>
+      </HeaderMark>
       <span
         data-testid="site-name"
-        className={`font-heading text-ink max-w-[16rem] overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-300 group-data-[collapsed=true]/header:max-w-0 group-data-[collapsed=true]/header:opacity-0 ${
-          desktop ? "hidden text-2xl min-[1400px]:text-[30px] lg:inline" : "text-[22px]"
+        data-artwork-collapse
+        className={`font-heading text-ink max-w-[16rem] overflow-hidden whitespace-nowrap transition-opacity duration-300 group-data-[collapsed=true]/header:pointer-events-none group-data-[collapsed=true]/header:absolute group-data-[collapsed=true]/header:top-1/2 group-data-[collapsed=true]/header:-translate-x-1/2 group-data-[collapsed=true]/header:-translate-y-1/2 group-data-[collapsed=true]/header:opacity-0 ${
+          desktop
+            ? "hidden text-2xl group-data-[collapsed=true]/header:left-[46px] min-[1400px]:text-[30px] lg:inline"
+            : "text-[22px] group-data-[collapsed=true]/header:left-[38px]"
         }`}
       >
         {studioName}
