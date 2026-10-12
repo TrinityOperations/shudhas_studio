@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createT, getMessages } from "@/lib/i18n/t";
-import { formatCivilDate, formatMelbourneFor, toBengaliDigits } from "./time";
+import { formatCivilDate, formatMelbourneFor, melbourneDayRange, toBengaliDigits } from "./time";
 
 describe("formatCivilDate", () => {
   it("renders a civil date as day, short month and year", () => {
@@ -52,5 +52,18 @@ describe("formatMelbourneFor", () => {
     const bn = createT(getMessages("bn"));
     expect(formatCivilDate("2026-12-10", bn, "bn")).toBe(`১০ ${bn("common.month.11")} ২০২৬`);
     expect(formatCivilDate("2026-12-10", createT(getMessages("en")), "en")).toBe("10 Dec 2026");
+  });
+});
+
+describe("melbourneDayRange", () => {
+  it("brackets the Melbourne civil day in UTC, daylight saving included", () => {
+    // 11 Oct 2026 20:00 UTC is 12 Oct 07:00 in Melbourne (AEDT, UTC+11).
+    const { start, end } = melbourneDayRange(new Date("2026-10-11T20:00:00Z"));
+    expect(start.toISOString()).toBe("2026-10-11T13:00:00.000Z");
+    expect(end.toISOString()).toBe("2026-10-12T13:00:00.000Z");
+    // 1 July (AEST, UTC+10): a day that starts at 14:00 UTC the day before.
+    const winter = melbourneDayRange(new Date("2026-07-01T05:00:00Z"));
+    expect(winter.start.toISOString()).toBe("2026-06-30T14:00:00.000Z");
+    expect(winter.end.toISOString()).toBe("2026-07-01T14:00:00.000Z");
   });
 });

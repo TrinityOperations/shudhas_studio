@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { FaqsManager } from "@/components/admin/content/faqs-manager";
+import { PageHeader } from "@/components/admin/page-header";
 import { listAllFaqs } from "@/db/queries/faqs";
 import { requireOwner } from "@/lib/auth";
 import { getT } from "@/lib/i18n";
@@ -14,10 +15,7 @@ export default async function FaqsPage() {
   const [t, faqs] = await Promise.all([getT(), listAllFaqs()]);
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.faqs.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("admin.faqs.description")}</p>
-      </header>
+      <PageHeader title={t("admin.faqs.title")} description={t("admin.faqs.description")} />
       <FaqsManager faqs={faqs} />
     </section>
   );

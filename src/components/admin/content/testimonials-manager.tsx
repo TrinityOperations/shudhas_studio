@@ -18,6 +18,8 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FieldMessage } from "@/components/shared/field-message";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { Badge } from "@/components/ui/badge";
+import { QuoteIcon } from "lucide-react";
+import { EmptyState } from "@/components/admin/empty-state";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -80,7 +82,11 @@ export function TestimonialsManager({ testimonials }: { testimonials: Testimonia
         </Button>
       )}
       {testimonials.length === 0 ? (
-        <p className="text-muted-foreground text-sm">{t("admin.testimonials.empty")}</p>
+        <EmptyState
+          icon={QuoteIcon}
+          title={t("admin.testimonials.empty")}
+          hint={t("admin.empty.testimonialsHint")}
+        />
       ) : (
         <OrderedList
           items={testimonials}

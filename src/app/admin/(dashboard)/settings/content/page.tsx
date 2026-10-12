@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ContentForm } from "@/components/admin/content/content-form";
+import { PageHeader } from "@/components/admin/page-header";
 import {
   getAboutSettings,
   getContactSettings,
@@ -27,10 +28,7 @@ export default async function ContentSettingsPage() {
   ]);
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.content.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("admin.content.description")}</p>
-      </header>
+      <PageHeader title={t("admin.content.title")} description={t("admin.content.description")} />
       <ContentForm
         defaultValues={{
           story: about.story,

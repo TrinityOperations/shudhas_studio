@@ -10,6 +10,8 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FieldMessage } from "@/components/shared/field-message";
 import { SubmitButton } from "@/components/shared/submit-button";
 import { Badge } from "@/components/ui/badge";
+import { MessageCircleQuestionIcon } from "lucide-react";
+import { EmptyState } from "@/components/admin/empty-state";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -54,7 +56,11 @@ export function FaqsManager({ faqs }: { faqs: Faq[] }) {
         </Button>
       )}
       {faqs.length === 0 ? (
-        <p className="text-muted-foreground text-sm">{t("admin.faqs.empty")}</p>
+        <EmptyState
+          icon={MessageCircleQuestionIcon}
+          title={t("admin.faqs.empty")}
+          hint={t("admin.empty.faqsHint")}
+        />
       ) : (
         <OrderedList
           items={faqs}

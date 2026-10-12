@@ -5,6 +5,7 @@ import { BookingFilters } from "@/components/admin/bookings/booking-filters";
 import { BookingList } from "@/components/admin/bookings/booking-list";
 import { parseAdminBookingListParams } from "@/components/admin/bookings/list-params";
 import { monthBounds, parseMonth } from "@/components/admin/bookings/month-grid";
+import { PageHeader } from "@/components/admin/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { listAdminBookings, listBookingsForMonth } from "@/db/queries/bookings";
 import { melbourneDateOf, melbourneWallClock } from "@/lib/booking/slots";
@@ -38,15 +39,14 @@ export default async function BookingsPage({ searchParams }: PageProps<"/admin/b
     );
     return (
       <section className="space-y-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">{t("admin.bookings.title")}</h1>
-          <Link
-            href="/admin/bookings"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            {t("admin.bookings.view.list")}
-          </Link>
-        </header>
+        <PageHeader
+          title={t("admin.bookings.title")}
+          action={
+            <Link href="/admin/bookings" className={buttonVariants({ variant: "outline" })}>
+              {t("admin.bookings.view.list")}
+            </Link>
+          }
+        />
         <BookingCalendar month={month} day={day} today={today} bookings={bookings} />
       </section>
     );
@@ -56,7 +56,7 @@ export default async function BookingsPage({ searchParams }: PageProps<"/admin/b
   const page = await listAdminBookings(params, now);
   return (
     <section className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("admin.bookings.title")}</h1>
+      <PageHeader title={t("admin.bookings.title")} />
       <BookingFilters params={params} currentMonth={today.slice(0, 7)} />
       <BookingList page={page} params={params} />
     </section>

@@ -23,6 +23,21 @@ export function fromMelbourne(date: Date): Date {
   return fromZonedTime(date, MELBOURNE_TZ);
 }
 
+/**
+ * The Melbourne civil day that contains `instant`, as UTC instants: `start` is its midnight and
+ * `end` the next midnight, so a query uses `[start, end)`. Daylight saving falls out of
+ * `fromZonedTime`, so the day is 23 or 25 hours long on the change-over days.
+ */
+export function melbourneDayRange(instant: Date): { start: Date; end: Date } {
+  const day = formatMelbourne(instant, "yyyy-MM-dd");
+  const next = new Date(`${day}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return {
+    start: fromZonedTime(`${day}T00:00:00`, MELBOURNE_TZ),
+    end: fromZonedTime(`${next.toISOString().slice(0, 10)}T00:00:00`, MELBOURNE_TZ),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Visitor-facing dates in the visitor's language (slice #11). English keeps the date-fns
 // patterns used since #4; Bengali uses Intl with bn-BD (Bengali digits and month names) in the

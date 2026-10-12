@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BannerForm } from "@/components/admin/content/banner-form";
+import { PageHeader } from "@/components/admin/page-header";
 import { getSeasonalBannerSettings } from "@/db/queries/settings";
 import { requireOwner } from "@/lib/auth";
 import { getT } from "@/lib/i18n";
@@ -15,15 +16,13 @@ export default async function BannerPage() {
   const [t, banner] = await Promise.all([getT(), getSeasonalBannerSettings()]);
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.banner.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("admin.banner.description")}</p>
+      <PageHeader title={t("admin.banner.title")} description={t("admin.banner.description")}>
         <p className="text-sm">
           <Link href="/admin/settings/theme" className="underline underline-offset-4">
             {t("admin.banner.themeLink")}
           </Link>
         </p>
-      </header>
+      </PageHeader>
       <BannerForm defaultValues={banner} />
     </section>
   );

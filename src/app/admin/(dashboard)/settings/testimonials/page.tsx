@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { TestimonialsManager } from "@/components/admin/content/testimonials-manager";
+import { PageHeader } from "@/components/admin/page-header";
 import { listAllTestimonials } from "@/db/queries/testimonials";
 import { requireOwner } from "@/lib/auth";
 import { getT } from "@/lib/i18n";
@@ -14,10 +15,10 @@ export default async function TestimonialsPage() {
   const [t, testimonials] = await Promise.all([getT(), listAllTestimonials()]);
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.testimonials.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("admin.testimonials.description")}</p>
-      </header>
+      <PageHeader
+        title={t("admin.testimonials.title")}
+        description={t("admin.testimonials.description")}
+      />
       <TestimonialsManager testimonials={testimonials} />
     </section>
   );

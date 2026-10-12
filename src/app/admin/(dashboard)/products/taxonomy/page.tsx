@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { TaxonomyList } from "@/components/admin/taxonomy-list";
+import { PageHeader } from "@/components/admin/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listTaxonomy } from "@/db/queries/taxonomy";
@@ -18,10 +19,7 @@ export default async function TaxonomyPage() {
 
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.taxonomy.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("admin.taxonomy.description")}</p>
-      </header>
+      <PageHeader title={t("admin.taxonomy.title")} description={t("admin.taxonomy.description")} />
 
       <Tabs defaultValue="categories">
         <TabsList>

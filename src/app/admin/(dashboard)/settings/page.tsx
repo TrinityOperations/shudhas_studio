@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SettingsForm } from "@/components/admin/settings-form";
+import { PageHeader } from "@/components/admin/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { getGeneralSettings } from "@/db/queries/settings";
 import { requireOwner } from "@/lib/auth";
@@ -24,10 +25,7 @@ export default async function SettingsPage() {
 
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.settings.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("admin.settings.description")}</p>
-      </header>
+      <PageHeader title={t("admin.settings.title")} description={t("admin.settings.description")} />
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
         <p className="text-sm">{t("admin.editor.entryHint")}</p>
         <Link href="/admin/home-editor" prefetch={false} className={buttonVariants()}>

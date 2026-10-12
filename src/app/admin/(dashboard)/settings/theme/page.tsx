@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ScheduleForm } from "@/components/admin/themes/schedule-form";
 import { ThemePicker } from "@/components/admin/themes/theme-picker";
+import { PageHeader } from "@/components/admin/page-header";
 import { getThemeSettings } from "@/db/queries/settings";
 import { requireOwner } from "@/lib/auth";
 import { getLocale, getT } from "@/lib/i18n";
@@ -19,13 +20,11 @@ export default async function ThemePage() {
   const active = resolveActiveTheme(settings);
   return (
     <section className="space-y-8">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.themes.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("admin.themes.description")}</p>
+      <PageHeader title={t("admin.themes.title")} description={t("admin.themes.description")}>
         <p className="pt-2 text-sm font-medium" data-testid="theme-live" aria-live="polite">
           {t("admin.themes.live")} {describeActiveTheme(active, t, locale)}
         </p>
-      </header>
+      </PageHeader>
       <ThemePicker manual={settings.manual} />
       <ScheduleForm defaultValues={{ schedule: settings.schedule }} />
     </section>

@@ -26,6 +26,7 @@ import {
 } from "@/db/schema";
 import { getAvailabilityContext, getBookingSettings } from "@/db/queries/availability";
 import { generateSlots, type Slot } from "@/lib/booking/slots";
+import { melbourneDayRange } from "@/lib/time";
 
 /**
  * PW-37: the customer's secret link. Looks up by manage_token only (never by id) and returns
@@ -214,8 +215,8 @@ export async function listAdminBookings(
   return { items: rows.map(toRow), total, page, pageCount };
 }
 
-/** Non-cancelled bookings starting in [from, to), soonest first (calendar month). */
-export async function listBookingsForMonth(from: Date, to: Date): Promise<AdminBookingRow[]> {
+/** Non-cancelled bookings starting in [from, to), soonest first. */
+async function listNonCancelledBetween(from: Date, to: Date): Promise<AdminBookingRow[]> {
   const rows = await db
     .select(rowColumns)
     .from(bookings)
@@ -231,20 +232,35 @@ export async function listBookingsForMonth(from: Date, to: Date): Promise<AdminB
   return rows.map(toRow);
 }
 
+/** The calendar month view (OD-20). */
+export async function listBookingsForMonth(from: Date, to: Date): Promise<AdminBookingRow[]> {
+  return listNonCancelledBetween(from, to);
+}
+
+/** Dashboard home: every non-cancelled booking on today's Melbourne civil day, soonest first. */
+export async function listTodayBookings(now = new Date()): Promise<AdminBookingRow[]> {
+  const { start, end } = melbourneDayRange(now);
+  return listNonCancelledBetween(start, end);
+}
+
 export async function countNewBookings(): Promise<number> {
   const [{ n }] = await db.select({ n: count() }).from(bookings).where(eq(bookings.status, "new"));
   return n;
 }
 
+/**
+ * The next `limit` live bookings (new or confirmed) starting at or after `from`. The dashboard
+ * home passes the end of today so this card never repeats the Today card.
+ */
 export async function listUpcomingBookings(
   limit: number,
-  now = new Date(),
+  from = new Date(),
 ): Promise<AdminBookingRow[]> {
   const rows = await db
     .select(rowColumns)
     .from(bookings)
     .leftJoin(products, eq(products.id, bookings.productId))
-    .where(tabWhere("upcoming", now))
+    .where(tabWhere("upcoming", from))
     .orderBy(asc(bookings.startsAt))
     .limit(limit);
   return rows.map(toRow);

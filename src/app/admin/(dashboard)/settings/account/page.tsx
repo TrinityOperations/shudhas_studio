@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AccountForm } from "@/components/admin/content/account-form";
+import { PageHeader } from "@/components/admin/page-header";
 import { requireOwner } from "@/lib/auth";
 import { getT } from "@/lib/i18n";
 
@@ -13,10 +14,7 @@ export default async function AccountPage() {
   const t = await getT();
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.account.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("admin.account.description")}</p>
-      </header>
+      <PageHeader title={t("admin.account.title")} description={t("admin.account.description")} />
       <AccountForm email={owner.email ?? ""} />
     </section>
   );
