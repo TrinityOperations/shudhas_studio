@@ -12,7 +12,7 @@ export async function DeliveryNote({ id = "delivery" }: { id?: string }) {
     <section
       id={id}
       aria-labelledby={`${id}-heading`}
-      className="border-line border bg-white p-6 lg:p-8"
+      className="border-line bg-ivory border p-6 lg:p-8"
     >
       <Tag variant="quiet" className="mb-3">
         {t("faq.delivery")}

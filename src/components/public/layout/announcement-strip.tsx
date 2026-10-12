@@ -34,7 +34,7 @@ export function AnnouncementStrip({
       role="region"
       aria-label={label}
       aria-live="polite"
-      className="bg-paper border-line border-b text-sm"
+      className="bg-linen border-line border-b text-sm"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}

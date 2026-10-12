@@ -58,14 +58,14 @@ export function SignatureDesigns({ cards, panel, slots }: Props) {
             <SiteImage slot={panel} alt="" sizes="(min-width: 1024px) 40vw, 100vw" />
           </motion.div>
           {/* The scrim sits on the text's own container so contrast checks can see it. */}
-          <div className="from-scrim/80 via-scrim/45 relative flex h-full min-h-[360px] flex-col justify-end bg-gradient-to-t to-transparent p-8 text-white lg:min-h-0 lg:p-12">
+          <div className="from-scrim/80 via-scrim/45 text-ivory relative flex h-full min-h-[360px] flex-col justify-end bg-gradient-to-t to-transparent p-8 lg:min-h-0 lg:p-12">
             <h2
               id="signature-heading"
               className="font-heading text-[32px] leading-tight lg:text-[44px]"
             >
               {t("home.signature.title")}
             </h2>
-            <p className="mt-3 max-w-md text-white/90">{t("home.signature.intro")}</p>
+            <p className="text-ivory/90 mt-3 max-w-md">{t("home.signature.intro")}</p>
             <Link
               href="/products?tag=signature"
               className="mt-5 w-fit text-[15px] font-medium underline underline-offset-[5px]"

@@ -31,7 +31,7 @@ export function SlotOverlay({ slots }: Props) {
           onClick={() => editor.openSlot(slot)}
           aria-label={t("admin.editor.slotLabel", { slot: slot.label })}
           data-testid={`slot-${slot.id}`}
-          className="bg-paper text-ink inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow transition-opacity hover:bg-white lg:opacity-0 lg:group-focus-within/slot:opacity-100 lg:group-hover/slot:opacity-100"
+          className="bg-paper text-ink hover:bg-ivory inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow transition-opacity lg:opacity-0 lg:group-focus-within/slot:opacity-100 lg:group-hover/slot:opacity-100"
         >
           <PencilIcon className="size-4" aria-hidden />
           {slot.kind === "heroVideo"

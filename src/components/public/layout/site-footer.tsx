@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FooterArtwork } from "@/components/public/artwork/footer-artwork";
 import { getT } from "@/lib/i18n";
 import type { MessageKey } from "@/lib/i18n/t";
 import type { SocialSettings } from "@/lib/validators/settings";
@@ -43,14 +44,15 @@ const COLUMNS: Column[] = [
 export async function SiteFooter({ studioName, social, whatsappUrl }: Props) {
   const t = await getT();
   const year = new Date().getFullYear();
-  const link = "text-white/86 hover:text-white underline-offset-4 hover:underline";
+  const link = "text-ivory/86 hover:text-ivory underline-offset-4 hover:underline";
 
   return (
-    <footer className="bg-primary text-white">
-      <div className="mx-auto grid w-full max-w-7xl gap-10 px-6 py-14 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div className="space-y-4">
+    <footer className="bg-primary text-ivory relative">
+      <FooterArtwork />
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-10 px-6 py-14 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div className="space-y-4" data-artwork-exclude="content">
           <p className="font-heading text-[30px] leading-tight">{studioName}</p>
-          <p className="max-w-xs text-white/86">{t("footer.tagline")}</p>
+          <p className="text-ivory/86 max-w-xs">{t("footer.tagline")}</p>
           <ul className="flex gap-2" aria-label={t("footer.social")}>
             {social.facebook ? (
               <li>
@@ -59,7 +61,7 @@ export async function SiteFooter({ studioName, social, whatsappUrl }: Props) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={t("footer.facebook")}
-                  className="grid size-11 place-items-center rounded-full border border-white/40 hover:bg-white/10"
+                  className="border-ivory/40 hover:bg-ivory/10 grid size-11 place-items-center rounded-full border"
                 >
                   <FacebookIcon />
                 </a>
@@ -72,7 +74,7 @@ export async function SiteFooter({ studioName, social, whatsappUrl }: Props) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={t("footer.instagram")}
-                  className="grid size-11 place-items-center rounded-full border border-white/40 hover:bg-white/10"
+                  className="border-ivory/40 hover:bg-ivory/10 grid size-11 place-items-center rounded-full border"
                 >
                   <InstagramIcon />
                 </a>
@@ -85,7 +87,7 @@ export async function SiteFooter({ studioName, social, whatsappUrl }: Props) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={t("footer.whatsapp")}
-                  className="grid size-11 place-items-center rounded-full border border-white/40 hover:bg-white/10"
+                  className="border-ivory/40 hover:bg-ivory/10 grid size-11 place-items-center rounded-full border"
                 >
                   <WhatsAppIcon />
                 </a>
@@ -94,7 +96,11 @@ export async function SiteFooter({ studioName, social, whatsappUrl }: Props) {
           </ul>
         </div>
         {COLUMNS.map((column) => (
-          <nav key={column.heading} aria-labelledby={`footer-${column.heading}`}>
+          <nav
+            key={column.heading}
+            aria-labelledby={`footer-${column.heading}`}
+            data-artwork-exclude="content"
+          >
             <h2 id={`footer-${column.heading}`} className="mb-3 text-[15px] font-medium">
               {t(column.heading)}
             </h2>
@@ -110,8 +116,11 @@ export async function SiteFooter({ studioName, social, whatsappUrl }: Props) {
           </nav>
         ))}
       </div>
-      <div className="mx-auto w-full max-w-7xl px-6">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/25 py-5 text-sm text-white/86">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-6">
+        <div
+          className="border-ivory/25 text-ivory/86 flex flex-wrap items-center justify-between gap-2 border-t py-5 text-sm"
+          data-artwork-exclude="content"
+        >
           <p>{t("footer.copyright", { year, name: studioName })}</p>
           <p aria-label={t("footer.language")}>
             {t("footer.english")} <span aria-hidden>|</span>{" "}

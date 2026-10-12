@@ -1,3 +1,4 @@
+import { SeasonIconSprite } from "@/components/public/artwork/season-icon";
 import { SiteFooter } from "@/components/public/layout/site-footer";
 import { SiteHeader } from "@/components/public/layout/site-header";
 import { WhatsAppButton } from "@/components/public/layout/whatsapp-button";
@@ -10,6 +11,7 @@ import {
 import { getT } from "@/lib/i18n";
 import { getPageTheme } from "@/lib/themes/active";
 import { themeRootProps } from "@/lib/themes/apply";
+import { artworkIconNames } from "@/lib/themes/artwork/names";
 import { whatsappLink } from "@/lib/whatsapp";
 
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
@@ -32,6 +34,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       >
         {t("common.skipToContent")}
       </a>
+      <SeasonIconSprite names={artworkIconNames(theme.id)} />
       <SiteHeader studioName={settings.studioName} announcement={announcement} />
       <main id="main" className={`flex-1 ${whatsappUrl ? "pb-20 sm:pb-0" : ""}`}>
         {children}

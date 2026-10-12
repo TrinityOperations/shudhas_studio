@@ -11,6 +11,8 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-heading: var(--font-heading-stack);
   --color-paper: var(--paper);
+  --color-ivory: var(--ivory);
+  --color-linen: var(--linen);
   --color-mist: var(--mist);
   --color-line: var(--line);
   --color-ink: var(--ink);
@@ -63,10 +65,14 @@
  * (mist), which is why the brand colour is called --brand-accent here.
  */
 :root {
-  --paper: #fbf9f6;
+  --paper: #f5efe4;
+  /* Ivory replaces pure white on every public surface (cards, tags, buttons, footer text);
+     --white stays only for things that must be pure white, and nothing public uses it. */
+  --ivory: #fbf8f2;
+  --linen: #efe7d8;
   --white: #ffffff;
   --mist: #edf0ea;
-  --line: #e3ddd3;
+  --line: #e3dacb;
   --ink: #2a2420;
   --ink-soft: #4e4740;
   --muted-text: #6b635b;
@@ -74,18 +80,24 @@
   --mark: #c2402a;
   --scrim: #1a1613;
   --font-heading-stack: var(--font-eczar), Georgia, serif;
-  /* The collapsed public header (and the editor's bar on desktop): 44px content + 2 × 10px
-     padding + 1px border. Sticky things that pin below the header use the same value. */
-  --header-collapsed-height: 65px;
+  /* The collapsed public header: the top row at 44px content + 2 × 10px padding, plus the
+     links row (40px including its hairline, desktop only) and the header's 1px bottom border:
+     105px on desktop, 65px on phones. Sticky things that pin below the header (the signature
+     panel) and the editor's bar on desktop use --header-collapsed-height. */
+  --header-links-height: 40px;
+  --header-top-collapsed-height: 64px;
+  --header-collapsed-height: calc(
+    var(--header-top-collapsed-height) + var(--header-links-height) + 1px
+  );
 
   --background: var(--paper);
   --foreground: var(--ink);
-  --card: var(--white);
+  --card: var(--ivory);
   --card-foreground: var(--ink);
-  --popover: var(--white);
+  --popover: var(--ivory);
   --popover-foreground: var(--ink);
-  --primary-foreground: var(--white);
-  --secondary: var(--white);
+  --primary-foreground: var(--ivory);
+  --secondary: var(--ivory);
   --secondary-foreground: var(--ink);
   --muted: var(--mist);
   --muted-foreground: var(--muted-text);
@@ -99,9 +111,9 @@
   --chart-4: var(--muted-text);
   --chart-5: var(--line);
   --radius: 0.625rem;
-  --sidebar: var(--white);
+  --sidebar: var(--ivory);
   --sidebar-foreground: var(--ink);
-  --sidebar-primary-foreground: var(--white);
+  --sidebar-primary-foreground: var(--ivory);
   --sidebar-accent: var(--mist);
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--line);
@@ -240,14 +252,14 @@ html[lang="bn"] .font-bangla {
     font-size: 14px;
     font-weight: 500;
     color: var(--ink);
-    background: var(--white);
+    background: var(--ivory);
     white-space: nowrap;
   }
   .chip[aria-current="true"],
   .chip[data-on="true"] {
     background: var(--brand-accent);
     border-color: var(--brand-accent);
-    color: var(--white);
+    color: var(--ivory);
   }
 
   /* The gift tag: pointed left end and a punched hole (docs/design.md, "The tag"). */
@@ -255,7 +267,7 @@ html[lang="bn"] .font-bangla {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: var(--white);
+    background: var(--ivory);
     color: var(--ink);
     font-weight: 500;
     font-size: 15px;
@@ -333,7 +345,7 @@ html[lang="bn"] .font-bangla {
   /* Frosted welcome card over the hero video (docs/design.md, hero). */
   .frosted {
     background: color-mix(in srgb, var(--paper) 85%, transparent);
-    border: 1px solid color-mix(in srgb, var(--white) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ivory) 60%, transparent);
     box-shadow: 0 24px 60px color-mix(in srgb, var(--scrim) 25%, transparent);
   }
   @supports (backdrop-filter: blur(1px)) {

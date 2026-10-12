@@ -120,7 +120,7 @@ export function Hero({ poster, videoPath, slots = [] }: Props) {
           onClick={togglePlayback}
           aria-label={paused ? t("home.hero.play") : t("home.hero.pause")}
           aria-pressed={paused}
-          className="border-line text-ink absolute top-4 right-4 z-10 grid size-11 place-items-center rounded-full border bg-white/90"
+          className="border-line text-ink bg-ivory/90 absolute top-4 right-4 z-10 grid size-11 place-items-center rounded-full border"
         >
           {paused ? <PlayIcon aria-hidden /> : <PauseIcon aria-hidden />}
         </button>

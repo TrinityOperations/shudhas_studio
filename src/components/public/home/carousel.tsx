@@ -43,7 +43,7 @@ export function Carousel({
         type="button"
         onClick={() => scrollBy(-1)}
         aria-label={t("home.carousel.prev")}
-        className="border-line text-ink hover:bg-mist grid size-11 place-items-center rounded-full border bg-white"
+        className="border-line text-ink hover:bg-mist bg-ivory grid size-11 place-items-center rounded-full border"
       >
         <ChevronLeftIcon aria-hidden />
       </button>
@@ -51,7 +51,7 @@ export function Carousel({
         type="button"
         onClick={() => scrollBy(1)}
         aria-label={t("home.carousel.next")}
-        className="border-line text-ink hover:bg-mist grid size-11 place-items-center rounded-full border bg-white"
+        className="border-line text-ink hover:bg-mist bg-ivory grid size-11 place-items-center rounded-full border"
       >
         <ChevronRightIcon aria-hidden />
       </button>

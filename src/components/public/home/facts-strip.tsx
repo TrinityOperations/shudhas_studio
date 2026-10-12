@@ -1,16 +1,18 @@
+import { FactIcon } from "@/components/public/artwork/fact-icon";
 import { getT } from "@/lib/i18n";
 
 const FACTS = ["home.facts.1", "home.facts.2", "home.facts.3", "home.facts.4"] as const;
 
-/** Home section 2: Eczar 22 marquee of the studio facts between two lines. */
+/** Home section 2: Eczar 22 marquee of the studio facts, each with its line icon, between two lines. */
 export async function FactsStrip() {
   const t = await getT();
   const facts = FACTS.map((key) => t(key));
   const row = (hidden: boolean) => (
     <ul aria-hidden={hidden || undefined} className="flex shrink-0 items-center">
-      {facts.map((fact) => (
+      {facts.map((fact, i) => (
         <li key={fact} className="flex items-center">
-          <span className="font-heading text-ink px-6 text-[18px] whitespace-nowrap lg:text-[22px]">
+          <span className="font-heading text-ink flex items-center gap-3 px-6 text-[18px] whitespace-nowrap lg:text-[22px]">
+            <FactIcon index={i} />
             {fact}
           </span>
           <span aria-hidden className="bg-mark size-2 shrink-0 rounded-full" />
