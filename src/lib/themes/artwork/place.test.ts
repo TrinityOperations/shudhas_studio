@@ -17,16 +17,17 @@ import {
   exclusionFor,
   hangerBox,
   headerBox,
+  collapsedCentre,
   headerCentreX,
   headerFrames,
-  headerOffset,
   heroBox,
   intersects,
   layoutSurface,
   opacityTier,
   placeHangers,
-  placeHeader,
+  placeHeaderIcons,
   poolSlotBox,
+  shownIn,
   resolveHeaderTable,
   type Box,
   type HeaderGeometry,
@@ -68,11 +69,9 @@ describe("header placement", () => {
     ],
   };
   const top = resolveHeaderTable(HDR.top, everyday);
-  const small = resolveHeaderTable(HDR.small, everyday);
   const phoneTop = resolveHeaderTable(HDR.phoneTop, everyday);
-  const phoneSmall = resolveHeaderTable(HDR.phoneSmall, everyday);
-  const dropped = (icons: typeof top, kept: number[]) =>
-    icons.filter((_, i) => !kept.includes(i)).map((icon) => icon.dx);
+  const absent = (icons: typeof top, placed: { index: number }[]) =>
+    icons.filter((_, i) => !placed.some((p) => p.index === i)).map((icon) => icon.dx);
 
   it("resolves a table: icons by index or filler, rendered size = round(size × 1.1), anchors", () => {
     expect(top[0]).toEqual({
@@ -88,17 +87,13 @@ describe("header placement", () => {
     expect(top[3]).toMatchObject({ icon: "bow", size: 10 });
     expect(top[12]).toMatchObject({ icon: "kantha", dx: 4, size: 15, anchor: "l" });
     expect(top[21]).toMatchObject({ icon: "needle", dx: 6, anchor: "r" });
-    expect(small[1]).toMatchObject({ icon: "dotstar", size: 8 });
   });
 
-  it("dx is from the row's centre, or in from an edge; the slide is a share of the offset", () => {
+  it("dx is from the row's centre, or in from the left or right edge", () => {
     expect(headerCentreX({ dx: -204, anchor: "c" }, 1440)).toBe(516);
     expect(headerCentreX({ dx: 4, anchor: "l" }, 1440)).toBe(4);
     expect(headerCentreX({ dx: 6, anchor: "r" }, 1440)).toBe(1434);
     expect(headerCentreX({ dx: 6, anchor: "r" }, 1024)).toBe(1018);
-    expect(headerOffset({ dx: 4, anchor: "l" }, 1440)).toBe(-716);
-    expect(headerOffset({ dx: 6, anchor: "r" }, 1440)).toBe(714);
-    expect(headerOffset({ dx: 338, anchor: "c" }, 1440)).toBe(338);
   });
 
   it("each state has its own fixed row, centred content and brand: mark and name, then the mark", () => {
@@ -107,72 +102,113 @@ describe("header placement", () => {
     expect(frames.small).toMatchObject({ width: 1440, height: 64, anchorY: 32 });
     expect(frames.top.exclusions[0]).toEqual({ x: 591, y: 0, width: 258, height: 86 });
     expect(frames.small.exclusions[0]).toEqual({ x: 700, y: 0, width: 40, height: 64 });
-    // Actions: a 24px band round the row's centre in each state (43 at the top, 32 collapsed).
+    // Actions: a 24px band round the row's centre in each state (43 at the top, 32 collapsed);
+    // the Book pill, 50px tall from 1400px, also keeps its whole box clear.
     expect(frames.top.exclusions[1]).toEqual({ x: 1103, y: 31, width: 44, height: 24 });
     expect(frames.small.exclusions[1]).toEqual({ x: 1103, y: 20, width: 44, height: 24 });
+    expect(frames.small.exclusions.at(-1)).toEqual({ x: 1212, y: 7, width: 184, height: 50 });
     expect(headerBox(top[0], frames.top)).toEqual({ x: 510.5, y: 67.5, width: 11, height: 11 });
   });
 
-  it("1440: all 24 top icons stay; collapsed, the three touching the 50px Book pill go", () => {
-    const frames = headerFrames(at1440);
-    expect(placeHeader(top, frames.top)).toHaveLength(24);
-    expect(dropped(small, placeHeader(small, frames.small))).toEqual([562, 638, 72]);
-    // The pill is taller than 48px, so its whole box is kept clear as well as its text band.
-    expect(frames.small.exclusions.at(-1)).toEqual({ x: 1212, y: 7, width: 184, height: 50 });
+  it("collapsing slides each side in by half the name, keeping the gap to the mark", () => {
+    // The name and its gap are 218px; the mark travels half of that to the centre, and each
+    // side slides the same distance, so spacing on a side does not change.
+    const delta = (258 - 40) / 2;
+    expect(collapsedCentre({ x: 720 + 300, y: 43 }, at1440).x).toBe(720 + 300 - delta);
+    expect(collapsedCentre({ x: 720 - 300, y: 43 }, at1440).x).toBe(720 - 300 + delta);
+    expect(collapsedCentre({ x: 1440, y: 43 }, at1440).x).toBe(1440 - delta);
+    expect(collapsedCentre({ x: 0, y: 43 }, at1440).x).toBe(delta);
+    // 70px clear of the name (right) or the mark (left) stays 70px clear of the centred mark.
+    const nameRight = 720 + 258 / 2;
+    const markRight = 720 + 40 / 2;
+    const markLeftBefore = 720 - 258 / 2;
+    const markLeftAfter = 720 - 40 / 2;
+    expect(collapsedCentre({ x: nameRight + 70, y: 43 }, at1440).x - markRight).toBe(70);
+    expect(markLeftAfter - collapsedCentre({ x: markLeftBefore - 70, y: 43 }, at1440).x).toBe(70);
+    // Down, the row's height scales (86 → 64), so the centre line stays the centre line.
+    expect(collapsedCentre({ x: 100, y: 43 }, at1440).y).toBeCloseTo(32);
+    expect(collapsedCentre({ x: 100, y: 73 }, at1440).y).toBeCloseTo((73 * 64) / 86);
   });
 
-  it("1024: centre-anchored icons beyond ±512 go, edge-anchored ones stay, some sit under actions", () => {
-    const frames = headerFrames(at1024);
-    const keptTop = placeHeader(top, frames.top);
-    expect(dropped(top, keptTop)).toEqual([-548, -606, 286, 560, 640]);
-    expect(dropped(small, placeHeader(small, frames.small))).toEqual([
-      -536, -592, 284, 332, 562, 638,
-    ]);
+  it("1440: all 24 show at the top and close in on the mark; four by the Book pill fade out", () => {
+    const placed = placeHeaderIcons(top, at1440);
+    expect(placed).toHaveLength(24);
+    expect(placed.every((p) => p.top)).toBe(true);
+    // The right-hand edge icons slide onto the 50px Book pill; the one at 560 stops short of it.
+    expect(placed.filter((p) => !p.small).map((p) => top[p.index].dx)).toEqual([640, 6, 40, 70]);
+    const delta = (258 - 40) / 2;
+    for (const p of placed) {
+      const x = headerCentreX(top[p.index], 1440);
+      expect(p.shiftX).toBe(x < 720 ? delta : -delta);
+    }
+    const nearest = (shift: boolean) =>
+      Math.min(
+        ...placed
+          .filter((p) => (shift ? p.small : p.top))
+          .map((p) => Math.abs(headerCentreX(top[p.index], 1440) - 720 + (shift ? p.shiftX : 0))),
+      );
+    expect(nearest(false)).toBe(204);
+    expect(nearest(true)).toBe(204 - delta);
+  });
+
+  it("1024: icons whose centre stays outside the row are left out; the rest slide into view", () => {
+    const placed = placeHeaderIcons(top, at1024);
+    expect(absent(top, placed)).toEqual([-606, 640]);
+    // Past the left edge, under the language toggle, and past the right edge: hidden at the
+    // top, in view once that side has slid in.
+    expect(placed.filter((p) => !p.top).map((p) => top[p.index].dx)).toEqual([-548, 286, 560]);
+    expect(placed.filter((p) => p.top).every((p) => p.small)).toBe(true);
     const edges = top.flatMap((icon, i) => (icon.anchor === "c" ? [] : [i]));
-    expect(edges.every((i) => keptTop.includes(i))).toBe(true);
-    expect(headerBox(top[12], frames.top).x).toBeLessThan(0); // the 4px one, half cut off
+    expect(edges.every((i) => placed.some((p) => p.index === i))).toBe(true);
+    expect(headerBox(top[12], headerFrames(at1024).top).x).toBeLessThan(0); // half cut off
   });
 
-  it("390: the phone tables keep 5 of 6 at the top and all 7 collapsed", () => {
-    const frames = headerFrames(at390);
-    expect(placeHeader(phoneTop, frames.top)).toEqual([0, 1, 2, 4, 5]); // 136 meets the heart
-    expect(placeHeader(phoneSmall, frames.small)).toEqual([0, 1, 2, 3, 4, 5, 6]);
+  it("390: five show at the top, all six once collapsed (the filler by the heart fades in)", () => {
+    expect(placeHeaderIcons(phoneTop, at390).map((p) => [p.index, p.top, p.small])).toEqual([
+      [0, true, true],
+      [1, true, true],
+      [2, true, true],
+      [3, false, true],
+      [4, true, true],
+      [5, true, true],
+    ]);
   });
 
-  it("no kept icon touches its state's brand or an action's text band", () => {
-    for (const [g, sets] of [
-      [at1440, [top, small]],
-      [at1024, [top, small]],
-      [at390, [phoneTop, phoneSmall]],
+  it("no shown icon touches its state's brand or actions", () => {
+    for (const [g, icons] of [
+      [at1440, top],
+      [at1024, top],
+      [at390, phoneTop],
     ] as const) {
       const frames = headerFrames(g);
-      for (const [icons, frame] of [
-        [sets[0], frames.top],
-        [sets[1], frames.small],
-      ] as const) {
-        for (const i of placeHeader(icons, frame)) {
-          const box = headerBox(icons[i], frame);
-          for (const zone of frame.exclusions) expect(intersects(box, zone)).toBe(false);
+      for (const p of placeHeaderIcons(icons, g)) {
+        const box = headerBox(icons[p.index], frames.top);
+        const moved = { ...box, x: box.x + p.shiftX, y: box.y + p.shiftY };
+        if (p.top)
+          for (const zone of frames.top.exclusions) expect(intersects(box, zone)).toBe(false);
+        if (p.small) {
+          for (const zone of frames.small.exclusions) expect(intersects(moved, zone)).toBe(false);
         }
       }
     }
   });
 
-  it("an icon is dropped when its centre leaves the row, not when its box crosses an edge", () => {
+  it("an icon is hidden when its centre leaves the row, not when its box crosses an edge", () => {
     const frame = { width: 400, height: 80, anchorY: 40, exclusions: [] };
-    const icons = [
-      { dx: 2, dy: 0, size: 14, anchor: "l" as const }, // box crosses the left edge: stays
-      { dx: -2, dy: 0, size: 14, anchor: "l" as const }, // centre outside: goes
-      { dx: 3, dy: 36, size: 14, anchor: "r" as const }, // box crosses the bottom: stays
-      { dx: 3, dy: 41, size: 14, anchor: "r" as const }, // centre below the row: goes
-      { dx: 204, dy: 0, size: 10 }, // centre past the right edge: goes
-    ];
-    expect(placeHeader(icons, frame)).toEqual([0, 2]);
+    const box = (x: number, y: number, size = 14) => ({
+      x: x - size / 2,
+      y: y - size / 2,
+      width: size,
+      height: size,
+    });
+    expect(shownIn(box(2, 40), frame)).toBe(true); // crosses the left edge
+    expect(shownIn(box(-2, 40), frame)).toBe(false); // centre outside
+    expect(shownIn(box(390, 76), frame)).toBe(true); // crosses the bottom
+    expect(shownIn(box(390, 81), frame)).toBe(false); // centre below the row
     const brand = { x: 180, y: 0, width: 40, height: 80 };
-    const near = (dx: number) => ({ dx, dy: 0, size: 10 });
-    expect(placeHeader([near(-25)], { ...frame, exclusions: [brand] })).toEqual([0]); // 175 < 180
-    expect(placeHeader([near(-24)], { ...frame, exclusions: [brand] })).toEqual([]); // touches
-    expect(placeHeader(top, { ...frame, width: 0 })).toEqual([]);
+    expect(shownIn(box(170, 40, 10), { ...frame, exclusions: [brand] })).toBe(true); // 175 < 180
+    expect(shownIn(box(176, 40, 10), { ...frame, exclusions: [brand] })).toBe(false); // touches
+    expect(placeHeaderIcons(top, { ...at1440, width: 0 })).toEqual([]);
   });
 });
 

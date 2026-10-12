@@ -93,15 +93,16 @@ export type HeaderSlot = readonly [
   anchor?: HeaderAnchor,
 ];
 
-export type HeaderTable = "top" | "small" | "phoneTop" | "phoneSmall";
+export type HeaderTable = "top" | "phoneTop";
 
 /**
- * The header's two icon sets per width: `top` while the page is at the top, `small` once the
- * header has collapsed (keeping their distance from the mark, nearest about 200px); the phone
- * tables below lg. The scatter covers the whole row, edge to edge and top to bottom (dy up to
- * ±34 at the top, ±24 collapsed), with the outermost icons anchored to the edges ("l", "r") so
- * they sit there at every width; the layer clips at the row's edges, so an edge icon may be
- * half cut off. Both sets of a width are rendered and cross-faded with a slide.
+ * The header's icons: `top` from lg, `phoneTop` below it, placed for the page at the top. The
+ * scatter covers the whole row, edge to edge and top to bottom (dy up to ±34), with the
+ * outermost icons anchored to the edges ("l", "r") so they sit there at every width; the layer
+ * clips at the row's edges, so an edge icon may be half cut off. When the header collapses the
+ * same icons slide in as two groups and fill the room the name leaves (place.ts,
+ * `collapsedCentre`): each side moves by half of (name + gap), keeping its spacing and its
+ * gap from the mark.
  */
 export const HDR: Record<HeaderTable, readonly HeaderSlot[]> = {
   top: [
@@ -130,32 +131,6 @@ export const HDR: Record<HeaderTable, readonly HeaderSlot[]> = {
     [40, 33, 7, 0, "p", "f", "r"],
     [70, -34, 9, 0, "p", 2, "r"],
   ],
-  small: [
-    [-198, -20, 11, 6, "p", 1],
-    [-230, 18, 7, 0, "a", "f"],
-    [-268, -4, 13, -10, "a", 0],
-    [-310, 22, 9, 12, "p", 2],
-    [-346, -22, 6, 0, "p", "f"],
-    [-392, 10, 13, -8, "a", 1],
-    [-440, -18, 10, 6, "p", 0],
-    [-482, 20, 7, 0, "a", "f"],
-    [-536, -8, 13, -12, "p", 2],
-    [-592, 16, 10, 10, "a", 0],
-    [100, -18, 8, 0, "a", "f", "l"],
-    [52, 14, 12, -8, "p", 2, "l"],
-    [4, -16, 13, 8, "a", 1, "l"],
-    [204, 18, 12, -12, "a", 0],
-    [238, -20, 7, 0, "p", "f"],
-    [284, 6, 11, 10, "p", 1],
-    [332, -18, 13, -6, "a", 2],
-    [412, 22, 8, 0, "p", "f"],
-    [468, -22, 7, 0, "a", "f"],
-    [562, 22, 9, -8, "a", 2],
-    [638, -22, 8, 0, "p", "f"],
-    [6, 16, 12, 10, "p", 0, "r"],
-    [40, -23, 7, 0, "a", "f", "r"],
-    [72, 23, 9, 0, "a", 1, "r"],
-  ],
   phoneTop: [
     [-112, 8, 10, -8, "a", 0],
     [-133, -12, 7, 0, "p", "f"],
@@ -163,15 +138,6 @@ export const HDR: Record<HeaderTable, readonly HeaderSlot[]> = {
     [136, 10, 7, 0, "a", "f"],
     [12, 26, 6, 0, "p", "f", "l"],
     [14, -26, 6, 0, "a", "f", "r"],
-  ],
-  phoneSmall: [
-    [-110, 7, 10, -8, "a", 0],
-    [-130, -10, 7, 0, "p", "f"],
-    [-97, -12, 6, 0, "p", 2],
-    [112, -9, 10, 10, "p", 1],
-    [134, 9, 7, 0, "a", "f"],
-    [12, -24, 6, 0, "a", "f", "l"],
-    [14, 24, 6, 0, "p", "f", "r"],
   ],
 };
 

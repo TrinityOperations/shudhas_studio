@@ -76,10 +76,8 @@ describe("season icon registry", () => {
     expect(names.length).toBeLessThan(SEASON_ICON_NAMES.length);
   });
 
-  it("the header tables have 24, 24, 6 and 7 icons, each a valid colour, icon and anchor", () => {
-    expect([HDR.top, HDR.small, HDR.phoneTop, HDR.phoneSmall].map((t) => t.length)).toEqual([
-      24, 24, 6, 7,
-    ]);
+  it("the header tables have 24 and 6 icons, each a valid colour, icon and anchor", () => {
+    expect([HDR.top, HDR.phoneTop].map((t) => t.length)).toEqual([24, 6]);
     for (const table of Object.values(HDR)) {
       for (const [dx, , size, , colour, icon, anchor = "c"] of table) {
         expect(size).toBeGreaterThan(0);

@@ -20,10 +20,12 @@ import type { SeasonIconName } from "./icons";
  * artwork"). Everything here is pure, so the header, tag and footer layers share it and the unit
  * tests run the very same code on measured and stand-in boxes.
  *
- * - Header: two sets of icons, one per state, at px offsets from the row's centre or in from an
- *   edge. An icon is dropped when its centre leaves its state's row or its box touches that
- *   state's brand (mark and name at the top, the mark once collapsed) or an action's text band;
- *   the layer clips at the edges, so a box may cross them. Nothing is reassigned.
+ * - Header: icons sit at px offsets from the row's centre or in from an edge. When the header
+ *   collapses each side slides in as a group, by half the width the name gives up, so the gap
+ *   from the mark stays the gap the icons had from the mark and the name. In each state an icon
+ *   is hidden when its centre leaves that state's row or its box touches that state's brand
+ *   (mark and name at the top, the mark once collapsed) or an action; the layer clips at the
+ *   edges, so a box may cross them. Nothing is reassigned.
  * - Tag and footer: a shared slot pool is filtered first (text, the hero, the hangers), and only
  *   then the theme's set is handed to the survivors, biggest first, so a slot meeting text never
  *   takes a set icon with it.
@@ -85,11 +87,6 @@ export function resolveHeaderTable(
     colour,
     anchor,
   }));
-}
-
-/** The icon centre's offset from the row's centre (what the cross-fade's slide is a share of). */
-export function headerOffset(icon: Pick<HeaderPosition, "dx" | "anchor">, width: number): number {
-  return headerCentreX(icon, width) - width / 2;
 }
 
 /** The top row in one state: its size, the y of the centre the set is anchored to, exclusions. */
@@ -167,10 +164,61 @@ export function shownIn(box: Box, frame: HeaderFrame): boolean {
   return inside && !frame.exclusions.some((zone) => intersects(box, zone));
 }
 
-/** Indices of the icons that stay in this state (no margin against the exclusions). */
-export function placeHeader(icons: readonly HeaderPosition[], frame: HeaderFrame): number[] {
-  if (frame.width <= 0 || frame.height <= 0) return [];
-  return icons.flatMap((icon, index) => (shownIn(headerBox(icon, frame), frame) ? [index] : []));
+/**
+ * Where an icon's centre goes once the header has collapsed. The name leaves and the mark
+ * travels to the brand's centre, opening the same gap on both sides: half of (name + the gap
+ * beside it). Every icon left of that centre slides right by that much, and every icon right
+ * of it slides left by that much, so a side keeps its spacing and the gap from the innermost
+ * icon to the mark equals the gap it had from the mark (left) or the name (right). Down, the
+ * row's height scales, so the centre line stays the centre line.
+ */
+export function collapsedCentre(
+  centre: { x: number; y: number },
+  g: HeaderGeometry,
+): { x: number; y: number } {
+  const y = centre.y * (g.heights.small / g.heights.top);
+  if (!g.brand) return { x: centre.x, y };
+  const delta = (g.brand.full - g.brand.mark) / 2;
+  const side = Math.sign(centre.x - g.brand.centre);
+  return { x: centre.x - side * delta, y };
+}
+
+/** One header icon in both states: where it sits at the top, how it moves, where it shows. */
+export type HeaderPlacement = {
+  index: number;
+  /** Its centre's y at the top of the page (x comes from its anchor, in CSS) */
+  y: number;
+  /** The move to its place once collapsed, px */
+  shiftX: number;
+  shiftY: number;
+  /** Shown at the top of the page, and once collapsed */
+  top: boolean;
+  small: boolean;
+};
+
+/**
+ * Places the icons for both states from one measurement: each sits on its table position at the
+ * top of the page and moves to `collapsedCentre` as the header collapses, shown in each state
+ * where it clears that state's brand and actions (an icon shown in one state only fades out or
+ * in as it moves). Icons shown in neither state are left out.
+ */
+export function placeHeaderIcons(
+  icons: readonly HeaderPosition[],
+  g: HeaderGeometry,
+): HeaderPlacement[] {
+  const frames = headerFrames(g);
+  if (frames.top.width <= 0 || frames.top.height <= 0) return [];
+  const placed: HeaderPlacement[] = [];
+  icons.forEach((icon, index) => {
+    const box = headerBox(icon, frames.top);
+    const centre = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    const to = collapsedCentre(centre, g);
+    const moved = { ...box, x: to.x - box.width / 2, y: to.y - box.height / 2 };
+    const shown = { top: shownIn(box, frames.top), small: shownIn(moved, frames.small) };
+    if (!shown.top && !shown.small) return;
+    placed.push({ index, y: centre.y, shiftX: to.x - centre.x, shiftY: to.y - centre.y, ...shown });
+  });
+  return placed;
 }
 
 // ---------------------------------------------------------------------------------------------

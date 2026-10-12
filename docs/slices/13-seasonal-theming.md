@@ -61,15 +61,15 @@ Per-theme motifs on the header, the big tag and the footer, icons in the facts s
 
 ## Round 3: whole sets and a header that stays (13 Oct 2026, branch `feat/13-artwork-round3`)
 - **Tag and footer:** shared slot pools; slots that meet text, the hero or a hanger go first, then the theme's `set` is handed to the survivors, biggest first, so every icon in the set appears at every width (unit guard for every theme at 1440, 1280, 1024, 768 and 390; e2e for Eid and Pohela Boishakh at 1440 and 390). The tag's text is centred at every width and measured by its lines and the button; the phone tag gained 24px of bottom padding (the mock-up needs both).
-- **Header:** the scatter covers the whole row, edge to edge (px from the row's centre, the outermost anchored to the edges), a pop colour per theme, stroke 1.8, opacity 1; two sets per width cross-fade and slide on collapse, so the icons stay. The header box keeps one height (no layout shift), collapses with 48px of hysteresis, the name only fades and the mark slides to the centre (`e2e/header-collapse.spec.ts`, Chromium, mobile and WebKit). The tag's text is measured by its lines at every width and the footer's bottom line by its lines. Icons kept, measured on the page:
+- **Header:** the scatter covers the whole row, edge to edge (px from the row's centre, the outermost anchored to the edges), a pop colour per theme, stroke 1.8, opacity 1; on collapse each side slides in by half of (name width + gap), keeping its spacing and its gap from the mark. The header box keeps one height (no layout shift), collapses with 48px of hysteresis, the name only fades and the mark slides to the centre (`e2e/header-collapse.spec.ts`, Chromium, mobile and WebKit). The tag's text is measured by its lines at every width and the footer's bottom line by its lines. Icons kept, measured on the page:
 
 | Width | At the top | Collapsed |
 | --- | --- | --- |
-| 1440 | 24 of 24 | 21 of 24 |
+| 1440 | 24 of 24 | 20 of 24 |
 | 1280 | 24 of 24 | 24 of 24 |
-| 1024 | 19 of 24 | 18 of 24 |
-| 768 | 6 of 6 | 7 of 7 |
-| 390 | 5 of 6 | 7 of 7 |
+| 1024 | 19 of 24 | 22 of 24 |
+| 768 | 6 of 6 | 6 of 6 |
+| 390 | 5 of 6 | 6 of 6 |
 
 ## Hand-off to later slices
 None. The season list in `src/lib/themes/themes.ts` is a placeholder until the client confirms; adding or removing one is a single entry there plus its `admin.themes.name.<id>` key.

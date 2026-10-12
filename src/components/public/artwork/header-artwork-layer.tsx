@@ -3,19 +3,18 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import { HEADER_STROKE } from "@/lib/themes/artwork/data";
 import { measureHeader } from "@/lib/themes/artwork/measure";
 import {
-  headerFrames,
-  headerOffset,
-  placeHeader,
+  placeHeaderIcons,
   type HeaderIcon,
+  type HeaderPlacement,
 } from "@/lib/themes/artwork/place";
 import { cn } from "@/lib/utils";
 import { SeasonIcon } from "./season-icon";
 
-type SetName = "top" | "small";
+type State = "both" | "top" | "small";
 
-type Layout = { width: number } & Record<SetName, { anchorY: number; kept: number[] }>;
+type Layout = { width: number; icons: HeaderPlacement[] };
 
-/** Where an icon's centre sits across the row, by its anchor. */
+/** Where an icon's centre sits across the row at the top of the page, by its anchor. */
 function left(icon: HeaderIcon): string {
   if (icon.anchor === "l") return `${icon.dx}px`;
   if (icon.anchor === "r") return `calc(100% - ${icon.dx}px)`;
@@ -27,61 +26,43 @@ const COLOUR_CLASS: Record<HeaderIcon["colour"], string> = {
   p: "text-[var(--pop)]",
 };
 
-/**
- * The cross-fade's slide, as a share of the icon's distance from the row's centre, and its
- * scale: the top set slides 40% in at 0.8 as it fades out; the small set comes in from 30%
- * further out at 1.1. [at the top of the page, once collapsed]
- */
-const MOTION: Record<
-  SetName,
-  [{ slide: number; scale: number }, { slide: number; scale: number }]
-> = {
-  top: [
-    { slide: 0, scale: 1 },
-    { slide: -0.4, scale: 0.8 },
-  ],
-  small: [
-    { slide: 0.3, scale: 1.1 },
-    { slide: 0, scale: 1 },
-  ],
-};
-
-function transform(offset: number, rotate: number, m: { slide: number; scale: number }): string {
-  return `translate(-50%, -50%) translateX(${offset * m.slide}px) scale(${m.scale}) rotate(${rotate}deg)`;
-}
-
-/** Each set's opacity follows the header's state; each icon's transform is set per state below. */
-const SET_CLASS: Record<SetName, string> = {
+/** An icon shown in one state only fades out (or in) as it moves. */
+const STATE_CLASS: Record<State, string> = {
+  both: "",
   top: "group-data-[collapsed=true]/header:opacity-0",
   small: "opacity-0 group-data-[collapsed=true]/header:opacity-100",
 };
 
+const stateOf = (p: HeaderPlacement): State =>
+  p.top && p.small ? "both" : p.top ? "top" : "small";
+
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /**
- * The season's icons behind the header's top row, in two sets: `top` while the page is at the
- * top, `small` once the header has collapsed (`data-collapsed` on the `group/header` element).
- * Both are placed once per width from one measurement (measure.ts → headerFrames), each against
- * its own state's row and brand (with or without the name), on that row's centre line, and
- * cross-faded with a slide over the header's 300 ms. Each icon's two transforms are written into
- * the state selectors themselves (`--t-top`, `--t-small`), so the browser sees the icon's own
- * transform change and animates it in WebKit as well as Chromium; opacity and transform only,
- * and the global reduced-motion rule makes both instant. The row's height changes during the
- * collapse, but its width does not, so nothing is re-placed mid-change. A dropped icon is simply
- * gone. Server-rendered empty; everything is aria-hidden and ignores the pointer.
+ * The season's icons behind the header's top row, edge to edge. When the header collapses
+ * (`data-collapsed` on the `group/header` element) the icons left of the mark slide in from the
+ * left and the icons right of the name slide in from the right, each side by half the width the
+ * name gives up, over the header's 300 ms with the mark's easing. Spacing on a side stays put,
+ * and the gap from the mark ends where the gap from the mark and the name began; on the way up
+ * they slide back out.
+ * Each icon's two transforms are written into the state selectors themselves (`--t-top`,
+ * `--t-small`), so the browser sees the icon's own transform change and animates it in WebKit
+ * as well as Chromium; transform and opacity only, and the global reduced-motion rule makes the
+ * change instant. Placement comes from one measurement per width (measure.ts → place.ts
+ * `placeHeaderIcons`); the row's height changes during the collapse but its width does not, so
+ * nothing is re-placed mid-change. An icon that would meet the brand or an action in one state
+ * fades out in that state. Server-rendered empty; aria-hidden, ignores the pointer.
  */
 export function HeaderArtworkLayer({
   theme,
   pop,
-  top,
-  small,
+  icons,
   className,
 }: {
   theme: string;
   /** The theme's pop colour, upper-case hex */
   pop: string;
-  top: readonly HeaderIcon[];
-  small: readonly HeaderIcon[];
+  icons: readonly HeaderIcon[];
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -103,12 +84,7 @@ export function HeaderArtworkLayer({
       // Only a new width (or late fonts) re-places: height-only resizes are the collapse.
       if (!force && geometry.width === width) return;
       width = geometry.width;
-      const frames = headerFrames(geometry);
-      setLayout({
-        width: geometry.width,
-        top: { anchorY: frames.top.anchorY, kept: placeHeader(top, frames.top) },
-        small: { anchorY: frames.small.anchorY, kept: placeHeader(small, frames.small) },
-      });
+      setLayout({ width: geometry.width, icons: placeHeaderIcons(icons, geometry) });
     };
     place(true);
     const observer = new ResizeObserver(() => place(false));
@@ -119,7 +95,7 @@ export function HeaderArtworkLayer({
       live = false;
       observer.disconnect();
     };
-  }, [top, small]);
+  }, [icons]);
 
   useEffect(() => {
     if (!layout) return;
@@ -142,41 +118,34 @@ export function HeaderArtworkLayer({
       )}
       style={{ "--pop": pop } as CSSProperties}
     >
-      {layout
-        ? (["top", "small"] as const).map((name) => (
-            <div
-              key={name}
-              data-header-set={name}
-              className={cn("absolute inset-0 transition-opacity duration-300", SET_CLASS[name])}
-            >
-              {layout[name].kept.map((i) => {
-                const icon = (name === "top" ? top : small)[i];
-                const offset = headerOffset(icon, layout.width);
-                const [atTop, collapsed] = MOTION[name];
-                return (
-                  <SeasonIcon
-                    key={i}
-                    name={icon.icon}
-                    size={icon.size}
-                    strokeWidth={HEADER_STROKE}
-                    className={cn(
-                      "absolute [transform:var(--t-top)] transition-transform duration-300 group-data-[collapsed=true]/header:[transform:var(--t-small)]",
-                      COLOUR_CLASS[icon.colour],
-                    )}
-                    style={
-                      {
-                        "--t-top": transform(offset, icon.rotate, atTop),
-                        "--t-small": transform(offset, icon.rotate, collapsed),
-                        left: left(icon),
-                        top: layout[name].anchorY + icon.dy,
-                      } as CSSProperties
-                    }
-                  />
-                );
-              })}
-            </div>
-          ))
-        : null}
+      {layout?.icons.map((p) => {
+        const icon = icons[p.index];
+        const state = stateOf(p);
+        const rest = `translate(-50%, -50%) rotate(${icon.rotate}deg)`;
+        const moved = `translate(-50%, -50%) translate(${p.shiftX}px, ${p.shiftY}px) rotate(${icon.rotate}deg)`;
+        return (
+          <SeasonIcon
+            key={p.index}
+            name={icon.icon}
+            size={icon.size}
+            strokeWidth={HEADER_STROKE}
+            headerState={state}
+            className={cn(
+              "absolute [transform:var(--t-top)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-data-[collapsed=true]/header:[transform:var(--t-small)]",
+              COLOUR_CLASS[icon.colour],
+              STATE_CLASS[state],
+            )}
+            style={
+              {
+                "--t-top": rest,
+                "--t-small": moved,
+                left: left(icon),
+                top: p.y,
+              } as CSSProperties
+            }
+          />
+        );
+      })}
     </div>
   );
 }

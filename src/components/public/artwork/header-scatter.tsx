@@ -5,8 +5,8 @@ import { HeaderArtworkLayer } from "./header-artwork-layer";
 
 /**
  * The season's icons behind the header's top row, in the accent and the theme's pop colour:
- * the desktop tables from lg, the phone tables below it (`narrow`). Both sets of a width go to
- * the layer, which cross-fades them as the header collapses, so the icons stay.
+ * the desktop table from lg, the phone table below it (`narrow`). The layer slides the same
+ * icons in from each side as the header collapses, filling the name's room without regrouping.
  */
 export function HeaderScatter({
   theme,
@@ -22,8 +22,7 @@ export function HeaderScatter({
     <HeaderArtworkLayer
       theme={theme.id}
       pop={art.pop}
-      top={resolveHeaderTable(narrow ? HDR.phoneTop : HDR.top, art)}
-      small={resolveHeaderTable(narrow ? HDR.phoneSmall : HDR.small, art)}
+      icons={resolveHeaderTable(narrow ? HDR.phoneTop : HDR.top, art)}
       className={className}
     />
   );

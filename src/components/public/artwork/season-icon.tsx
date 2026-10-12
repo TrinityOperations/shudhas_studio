@@ -53,6 +53,8 @@ type Props = {
   opacity?: number;
   /** Stroke width in px (non-scaling), inherited by the sprite's path */
   strokeWidth?: number;
+  /** Header icons only: the states it shows in (`data-header-state`), for tests */
+  headerState?: "both" | "top" | "small";
   className?: string;
   /** A `transform` here comes first; `rotate` is applied after it */
   style?: CSSProperties;
@@ -65,6 +67,7 @@ export function SeasonIcon({
   rotate = 0,
   opacity,
   strokeWidth = SEASON_STROKE,
+  headerState,
   className,
   style,
 }: Props) {
@@ -81,6 +84,7 @@ export function SeasonIcon({
       className={cn("pointer-events-none shrink-0 select-none", className)}
       style={{ ...style, opacity, transform }}
       data-season-icon={name}
+      data-header-state={headerState}
     >
       <use href={`#${SYMBOL_PREFIX}${name}`} />
     </svg>

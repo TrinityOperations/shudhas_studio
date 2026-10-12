@@ -95,8 +95,7 @@ describe("artwork markup", () => {
         createElement(HeaderArtworkLayer, {
           theme: "eid",
           pop: art.pop,
-          top: resolveHeaderTable(HDR.top, art),
-          small: resolveHeaderTable(HDR.small, art),
+          icons: resolveHeaderTable(HDR.top, art),
         }),
       ),
     );

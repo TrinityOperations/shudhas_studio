@@ -11,7 +11,9 @@ type Props = {
 /**
  * The centred mark + name. The mark is an "S" until Shudha's logo file arrives: [placeholder].
  * When the header collapses (header-chrome.tsx sets data-collapsed) the name only fades: it is
- * never clipped or narrowed. It also leaves the brand's layout (absolute), placed so it stays
+ * never clipped or narrowed. It fades out in the first 150 ms and back in during the last
+ * 150 ms of the way up, so the header's icons, which move in to fill its room, never cross
+ * visible letters. It also leaves the brand's layout (absolute), placed so it stays
  * exactly where it was: its centre sits (mark + gap) / 2 right of the brand's centre in both
  * states, so collapsed it is centred at the mark's width plus half the 12px gap from the brand's
  * left edge. The brand then shrinks to the mark, which HeaderMark animates to the centre. On
@@ -37,7 +39,7 @@ export function LogoMark({ studioName, homeLabel, size = "desktop" }: Props) {
       <span
         data-testid="site-name"
         data-artwork-collapse
-        className={`font-heading text-ink max-w-[16rem] overflow-hidden whitespace-nowrap transition-opacity duration-300 group-data-[collapsed=true]/header:pointer-events-none group-data-[collapsed=true]/header:absolute group-data-[collapsed=true]/header:top-1/2 group-data-[collapsed=true]/header:-translate-x-1/2 group-data-[collapsed=true]/header:-translate-y-1/2 group-data-[collapsed=true]/header:opacity-0 ${
+        className={`font-heading text-ink max-w-[16rem] overflow-hidden whitespace-nowrap transition-opacity delay-150 duration-150 group-data-[collapsed=true]/header:pointer-events-none group-data-[collapsed=true]/header:absolute group-data-[collapsed=true]/header:top-1/2 group-data-[collapsed=true]/header:-translate-x-1/2 group-data-[collapsed=true]/header:-translate-y-1/2 group-data-[collapsed=true]/header:opacity-0 group-data-[collapsed=true]/header:delay-0 ${
           desktop
             ? "hidden text-2xl group-data-[collapsed=true]/header:left-[46px] min-[1400px]:text-[30px] lg:inline"
             : "text-[22px] group-data-[collapsed=true]/header:left-[38px]"

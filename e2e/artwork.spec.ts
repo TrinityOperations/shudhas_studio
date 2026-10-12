@@ -139,14 +139,13 @@ async function checkHome(page: Page, theme: string, viewport: { width: number; h
   const phone = viewport.width < 1024;
   const what = `${theme} ${viewport.width}`;
 
-  // Header at the top of the page: the top set shows, never under the brand or the actions.
+  // Header at the top of the page: the icons shown there, never under the brand or the actions.
   const header = page.getByTestId("site-header");
   const headerLayer = page.locator('[data-surface="header"]').filter({ visible: true });
   await expect(headerLayer).toHaveAttribute("data-placed", "true");
   await expect(headerLayer).toHaveAttribute("data-artwork-theme", theme);
-  const topSet = headerLayer.locator('[data-header-set="top"]');
-  const smallSet = headerLayer.locator('[data-header-set="small"]');
-  await expect(topSet).toHaveCSS("opacity", "1");
+  const AT_TOP = 'svg[data-header-state="both"], svg[data-header-state="top"]';
+  const COLLAPSED = 'svg[data-header-state="both"], svg[data-header-state="small"]';
   const brand = page.getByTestId("site-logo").filter({ visible: true });
   const actions = phone
     ? [header.getByTestId("header-menu"), header.locator('a[href="/wishlist"]').nth(1)]
@@ -155,24 +154,39 @@ async function checkHome(page: Page, theme: string, viewport: { width: number; h
         header.locator('a[href="/wishlist"]').first(),
         header.getByRole("button", { name: /language|ভাষা/i }).first(),
       ];
-  await expectClear(topSet, [brand, ...actions], `header top ${what}`);
+  await expectClear(headerLayer, [brand, ...actions], `header top ${what}`, AT_TOP);
+  // The brand stays centred in both states (the mark sits left of centre while the name shows).
+  const brandCentre = async () => {
+    const b = await elementBox(brand);
+    return b.x + b.width / 2;
+  };
+  const nearest = async (selector: string) => {
+    const centre = await brandCentre();
+    const boxes = await iconBoxes(headerLayer, selector);
+    return Math.min(...boxes.map((b) => Math.abs(b.x + b.width / 2 - centre)));
+  };
+  const nearestAtTop = await nearest(AT_TOP);
 
-  // Scrolled past the hero: the header collapses and its icons stay, the small set in place.
+  // Scrolled past the hero: the header collapses and the same icons stay, closing in on the
+  // mark to fill the room the name gave up.
   await page.evaluate(() => window.scrollTo({ top: 1600, behavior: "instant" }));
   await expect(header).toHaveAttribute("data-collapsed", "true");
   await expect(headerLayer).toHaveCSS("opacity", "1");
-  await expect(smallSet).toHaveCSS("opacity", "1");
-  await expect(topSet).toHaveCSS("opacity", "0");
-  // Every collapsed icon at 390; at 1440 all but the three that touch the Book pill, which is
-  // 50px tall from 1400px (an action taller than 48px keeps its whole box clear).
-  const expected = { 1440: HDR.small.length - 3, 390: HDR.phoneSmall.length }[viewport.width];
-  if (expected) await expect(smallSet.locator("svg")).toHaveCount(expected);
-  await page.waitForTimeout(400); // the slide settles
-  for (const box of await iconBoxes(smallSet)) {
-    expect(box.width, `${what}: a collapsed icon has no size`).toBeGreaterThan(0);
-  }
+  await page.waitForTimeout(500); // the 300 ms move
+  // At 390 all six; at 1440 all but the four that would land on the Book pill, which is 50px
+  // tall from 1400px (an action taller than 48px keeps its whole box clear).
+  const expected = { 1440: HDR.top.length - 4, 390: HDR.phoneTop.length }[viewport.width];
+  if (expected) await expect(headerLayer.locator(COLLAPSED)).toHaveCount(expected);
+  const opacities = await headerLayer
+    .locator(COLLAPSED)
+    .evaluateAll((els) => els.map((el) => getComputedStyle(el).opacity));
+  expect(opacities.length, `${what}: icons once collapsed`).toBeGreaterThan(0);
+  expect(new Set(opacities), `${what}: every collapsed icon visible`).toEqual(new Set(["1"]));
+  expect(await nearest(COLLAPSED), `${what}: icons close in on the mark`).toBeLessThan(
+    nearestAtTop - 30,
+  );
   const mark = await elementBox(brand.locator('[data-placeholder="logo"]'));
-  await expectClear(smallSet, [mark, ...actions], `header collapsed ${what}`);
+  await expectClear(headerLayer, [mark, ...actions], `header collapsed ${what}`, COLLAPSED);
 
   // Tag: never under a line of its text or the button; every icon in the set.
   const tag = page.getByTestId("seasonal-tag");
