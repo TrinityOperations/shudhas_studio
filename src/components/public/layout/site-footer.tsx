@@ -119,7 +119,7 @@ export async function SiteFooter({ studioName, social, whatsappUrl }: Props) {
       <div className="relative z-10 mx-auto w-full max-w-7xl px-6">
         <div
           className="border-ivory/25 text-ivory/86 flex flex-wrap items-center justify-between gap-2 border-t py-5 text-sm"
-          data-artwork-exclude="content"
+          data-artwork-exclude="lines"
         >
           <p>{t("footer.copyright", { year, name: studioName })}</p>
           <p aria-label={t("footer.language")}>

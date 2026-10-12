@@ -173,9 +173,10 @@ test.describe("home page and site chrome", () => {
         if (mobile) {
           expect(Math.round(panelBefore - panelAfter)).toBeGreaterThanOrEqual(195);
         } else {
-          const headerBottom =
-            (await visitor.getByTestId("site-header").boundingBox())!.y +
-            (await visitor.getByTestId("site-header").boundingBox())!.height;
+          // The panel pins under the visible collapsed bar (the header's sticky box below it is
+          // transparent and keeps its expanded height).
+          const bar = (await visitor.getByTestId("header-bar").boundingBox())!;
+          const headerBottom = bar.y + bar.height;
           expect(Math.abs(panelAfter - headerBottom)).toBeLessThanOrEqual(2);
           expect(Math.abs(panelAfter - panelBefore)).toBeLessThan(200);
         }

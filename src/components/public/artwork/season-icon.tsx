@@ -8,7 +8,8 @@ export const SEASON_STROKE = 1.4;
 
 /**
  * The page's icon sprite: one `<symbol>` per icon the active theme can use, rendered once in the
- * public layout so a band of 46 motifs is 46 `<use>` elements, not 46 copies of the path.
+ * public layout so a band of 46 motifs is 46 `<use>` elements, not 46 copies of the path. The
+ * paths take their stroke width from the `<use>` (SeasonIcon), so the header can draw bolder.
  */
 export function SeasonIconSprite({ names }: { names: readonly SeasonIconName[] }) {
   return (
@@ -30,7 +31,6 @@ export function SeasonIconSprite({ names }: { names: readonly SeasonIconName[] }
                   d={icon.s}
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth={SEASON_STROKE}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   vectorEffect="non-scaling-stroke"
@@ -51,12 +51,28 @@ type Props = {
   /** Degrees */
   rotate?: number;
   opacity?: number;
+  /** Stroke width in px (non-scaling), inherited by the sprite's path */
+  strokeWidth?: number;
+  /** Header icons only: the states it shows in (`data-header-state`), for tests */
+  headerState?: "both" | "top" | "small";
   className?: string;
+  /** A `transform` here comes first; `rotate` is applied after it */
   style?: CSSProperties;
 };
 
 /** One decorative icon from the sprite, in `currentColor`. Never carries a label. */
-export function SeasonIcon({ name, size, rotate = 0, opacity, className, style }: Props) {
+export function SeasonIcon({
+  name,
+  size,
+  rotate = 0,
+  opacity,
+  strokeWidth = SEASON_STROKE,
+  headerState,
+  className,
+  style,
+}: Props) {
+  const transform =
+    [style?.transform, rotate ? `rotate(${rotate}deg)` : ""].filter(Boolean).join(" ") || undefined;
   return (
     <svg
       aria-hidden="true"
@@ -64,13 +80,11 @@ export function SeasonIcon({ name, size, rotate = 0, opacity, className, style }
       width={size}
       height={size}
       viewBox="0 0 48 48"
+      strokeWidth={strokeWidth}
       className={cn("pointer-events-none shrink-0 select-none", className)}
-      style={{
-        ...style,
-        opacity,
-        transform: rotate ? `rotate(${rotate}deg)` : undefined,
-      }}
+      style={{ ...style, opacity, transform }}
       data-season-icon={name}
+      data-header-state={headerState}
     >
       <use href={`#${SYMBOL_PREFIX}${name}`} />
     </svg>

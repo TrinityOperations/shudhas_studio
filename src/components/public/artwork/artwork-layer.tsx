@@ -1,46 +1,49 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
-import type { Band, Hanger, Motif, MotifColour } from "@/lib/themes/artwork/data";
+import type {
+  Band,
+  Hanger,
+  Motif,
+  MotifColour,
+  OpacityTiers,
+  PoolSlot,
+} from "@/lib/themes/artwork/data";
+import type { SeasonIconName } from "@/lib/themes/artwork/icons";
 import { measureExclusions } from "@/lib/themes/artwork/measure";
 import {
-  bandHeight,
-  bandPositions,
-  HANGER_GAP,
-  placeHangers,
-  placeScatter,
-  type Placed,
+  layoutSurface,
+  motifStroke,
+  type BandLayout,
+  type SurfaceLayout,
 } from "@/lib/themes/artwork/place";
 import { cn } from "@/lib/utils";
 import { SeasonIcon } from "./season-icon";
 
-export type ArtworkColour = MotifColour | "accent";
-
-/** A motif in any of the three colours (the header scatter uses the accent). */
-export type ArtworkMotif = Omit<Motif, "colour"> & { colour: ArtworkColour };
-
 export type ArtworkLayerProps = {
   /** Which surface this is, for tests and the theme preview check */
-  surface: "header" | "tag" | "footer";
+  surface: "tag" | "footer";
   theme: string;
-  /** The theme's deco colour; ivory and accent come from the tokens */
-  deco?: string;
-  motifs: readonly ArtworkMotif[];
+  /** The theme's deco colour; ivory comes from the tokens */
+  deco: string;
+  /** Below lg: the phone pool, no hangers, the smaller hero (chosen by the caller) */
+  compact?: boolean;
+  pool: readonly PoolSlot[];
+  /** Icons that must all appear */
+  set: readonly SeasonIconName[];
+  filler: SeasonIconName;
+  /** Slots past the set smaller than this get the filler */
+  fillerBelow: number;
+  tiers: OpacityTiers;
+  hero: Motif | null;
   hangers?: readonly Hanger[];
-  band?: Band;
-  bandEdge?: "top" | "bottom";
+  band: Band;
+  bandLayout: BandLayout;
   className?: string;
 };
 
-type Layout = {
-  motifs: Placed<ArtworkMotif>[];
-  hangers: Placed<Hanger>[];
-  band: { left: number; top: number }[];
-};
-
-const COLOUR_CLASS: Record<ArtworkColour, string> = {
+export const COLOUR_CLASS: Record<MotifColour, string> = {
   deco: "text-[var(--deco)]",
   ivory: "text-ivory",
-  accent: "text-primary",
 };
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
@@ -49,24 +52,32 @@ const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayout
 const NO_HANGERS: readonly Hanger[] = [];
 
 /**
- * A decorative layer behind a surface's text. Server-rendered empty (no layout shift); after
- * mount it measures the surface and the elements marked `data-artwork-exclude`, keeps the motifs
- * that sit clear of them (place.ts) and fades them in. The parent must be `relative` and the
- * text must sit above it (`relative z-10`). Everything here is aria-hidden and ignores the
- * pointer; the fade is a CSS transition, so reduced motion makes it instant.
+ * A decorative layer behind the tag's or the footer's text. Server-rendered empty (no layout
+ * shift); after mount it measures the surface and the elements marked `data-artwork-exclude`,
+ * lays the theme's artwork out with `layoutSurface` (place.ts: hero and hangers clear of text,
+ * then the pool's surviving slots take the set, biggest first) and fades it in. The parent must
+ * be `relative` and the text must sit above it (`relative z-10`). Everything here is aria-hidden
+ * and ignores the pointer; the fade is a CSS transition, so reduced motion makes it instant.
  */
 export function ArtworkLayer({
   surface,
   theme,
   deco,
-  motifs,
+  compact = false,
+  pool,
+  set,
+  filler,
+  fillerBelow,
+  tiers,
+  hero,
   hangers = NO_HANGERS,
   band,
-  bandEdge = "bottom",
+  bandLayout,
   className,
 }: ArtworkLayerProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const [layout, setLayout] = useState<Layout | null>(null);
+  const warned = useRef("");
+  const [layout, setLayout] = useState<SurfaceLayout | null>(null);
   const [shown, setShown] = useState(false);
 
   useIsoLayoutEffect(() => {
@@ -74,25 +85,52 @@ export function ArtworkLayer({
     const parent = el?.parentElement;
     if (!el || !parent) return;
     const place = () => {
-      const size = { width: parent.clientWidth, height: parent.clientHeight };
+      const box = { width: parent.clientWidth, height: parent.clientHeight };
       // A layer hidden at this breakpoint (display: none) places nothing.
-      if (size.width === 0 || size.height === 0 || el.getClientRects().length === 0) {
+      if (box.width === 0 || box.height === 0 || el.getClientRects().length === 0) {
         setLayout(null);
         return;
       }
-      const strip = band ? bandHeight(band.size) : 0;
-      const exclusions = measureExclusions(parent, bandEdge === "bottom" ? strip : 0);
-      setLayout({
-        motifs: placeScatter(motifs, size, exclusions),
-        hangers: placeHangers(hangers, size, exclusions),
-        band: band ? bandPositions(band.count, band.size, size, bandEdge) : [],
+      const next = layoutSurface({
+        box,
+        text: measureExclusions(parent),
+        pool,
+        set,
+        filler,
+        fillerBelow,
+        tiers,
+        hero,
+        hangers: compact ? NO_HANGERS : hangers,
+        band,
+        bandLayout,
       });
+      const key = next.missing.join(",");
+      if (process.env.NODE_ENV !== "production" && key && warned.current !== key) {
+        console.warn(
+          `Seasonal artwork: no room on the ${surface} (${theme}${compact ? ", below lg" : ""}) at ${Math.round(box.width)}px for ${key}`,
+        );
+      }
+      warned.current = key;
+      setLayout(next);
     };
     place();
     const observer = new ResizeObserver(place);
     observer.observe(parent);
     return () => observer.disconnect();
-  }, [motifs, hangers, band, bandEdge]);
+  }, [
+    surface,
+    theme,
+    compact,
+    pool,
+    set,
+    filler,
+    fillerBelow,
+    tiers,
+    hero,
+    hangers,
+    band,
+    bandLayout,
+  ]);
 
   useEffect(() => {
     if (!layout) return;
@@ -113,8 +151,19 @@ export function ArtworkLayer({
         shown ? "opacity-100" : "opacity-0",
         className,
       )}
-      style={deco ? ({ "--deco": deco } as CSSProperties) : undefined}
+      style={{ "--deco": deco } as CSSProperties}
     >
+      {layout?.hero ? (
+        <SeasonIcon
+          name={layout.hero.icon}
+          size={layout.hero.size}
+          rotate={layout.hero.rotate}
+          opacity={layout.hero.opacity}
+          strokeWidth={motifStroke(layout.hero.size)}
+          className={cn("absolute", COLOUR_CLASS[layout.hero.colour])}
+          style={{ left: layout.hero.left, top: layout.hero.top }}
+        />
+      ) : null}
       {layout?.motifs.map((m) => (
         <SeasonIcon
           key={`m${m.index}`}
@@ -122,6 +171,7 @@ export function ArtworkLayer({
           size={m.size}
           rotate={m.rotate}
           opacity={m.opacity}
+          strokeWidth={motifStroke(m.size)}
           className={cn("absolute", COLOUR_CLASS[m.colour])}
           style={{ left: m.left, top: m.top }}
         />
@@ -130,26 +180,25 @@ export function ArtworkLayer({
         <div
           key={`h${h.index}`}
           className={cn("absolute top-0 flex flex-col items-center", COLOUR_CLASS[h.colour])}
-          style={{ left: h.left, width: h.size, opacity: h.opacity, gap: HANGER_GAP }}
+          style={{ left: h.left, width: h.size, opacity: h.opacity }}
         >
-          <span className="block w-px bg-current" style={{ height: h.thread }} />
+          <span className="bg-ivory/55 block w-[1.5px]" style={{ height: h.thread }} />
           {h.items.map((item, i) => (
-            <SeasonIcon key={i} name={item} size={h.size} />
+            <SeasonIcon key={i} name={item} size={h.size} strokeWidth={motifStroke(h.size)} />
           ))}
         </div>
       ))}
-      {band && layout
-        ? layout.band.map((pos, i) => (
-            <SeasonIcon
-              key={`b${i}`}
-              name={band.icon}
-              size={band.size}
-              opacity={band.opacity}
-              className={cn("absolute", COLOUR_CLASS[band.colour])}
-              style={{ left: pos.left, top: pos.top }}
-            />
-          ))
-        : null}
+      {layout?.band.map((pos, i) => (
+        <SeasonIcon
+          key={`b${i}`}
+          name={band.icon}
+          size={band.size}
+          opacity={band.opacity}
+          strokeWidth={motifStroke(band.size)}
+          className={cn("absolute", COLOUR_CLASS[band.colour])}
+          style={{ left: pos.left, top: pos.top }}
+        />
+      ))}
     </div>
   );
 }

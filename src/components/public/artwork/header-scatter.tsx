@@ -1,17 +1,12 @@
-import {
-  getThemeArtwork,
-  HEADER_SCATTER,
-  HEADER_SLOTS,
-  HEADER_SLOTS_NARROW,
-} from "@/lib/themes/artwork/data";
+import { getThemeArtwork, HDR } from "@/lib/themes/artwork/data";
+import { resolveHeaderTable } from "@/lib/themes/artwork/place";
 import type { Theme } from "@/lib/themes/themes";
-import { cn } from "@/lib/utils";
-import { ArtworkLayer, type ArtworkMotif } from "./artwork-layer";
+import { HeaderArtworkLayer } from "./header-artwork-layer";
 
 /**
- * The faint scatter of the season's icons behind the header's top row: the theme's header icons
- * on the larger slots, its filler on the small ones, in the accent colour. Fades with the
- * wordmark when the header collapses (the `group/header` data attribute).
+ * The season's icons behind the header's top row, in the accent and the theme's pop colour:
+ * the desktop table from lg, the phone table below it (`narrow`). The layer slides the same
+ * icons in from each side as the header collapses, filling the name's room without regrouping.
  */
 export function HeaderScatter({
   theme,
@@ -23,23 +18,12 @@ export function HeaderScatter({
   className?: string;
 }) {
   const art = getThemeArtwork(theme.id);
-  const slots = narrow ? HEADER_SLOTS_NARROW : HEADER_SLOTS;
-  let next = 0;
-  const motifs: ArtworkMotif[] = slots.map(([x, y, size, rotate]) => ({
-    icon: size >= 14 ? art.headerIcons[next++ % art.headerIcons.length] : art.headerFiller,
-    x,
-    y,
-    size,
-    rotate,
-    colour: "accent",
-    opacity: HEADER_SCATTER.opacity,
-  }));
   return (
-    <ArtworkLayer
-      surface="header"
+    <HeaderArtworkLayer
       theme={theme.id}
-      motifs={motifs}
-      className={cn("group-data-[collapsed=true]/header:opacity-0", className)}
+      pop={art.pop}
+      icons={resolveHeaderTable(narrow ? HDR.phoneTop : HDR.top, art)}
+      className={className}
     />
   );
 }

@@ -17,9 +17,9 @@ type Props = { studioName: string; announcement: AnnouncementSettings };
 
 /**
  * docs/design.md, "Header": announcement strip, then the sticky header in two rows. Top row:
- * the brand centred, the actions on the right, the season's icons scattered faintly behind
- * (never under the brand or the actions' text: HeaderScatter measures them). Links row under
- * it on desktop; phones keep the links in the menu sheet.
+ * the brand centred, the actions on the right, the season's icons behind in two sets that
+ * cross-fade as the header collapses (never under the brand or the actions' text: the layer
+ * measures them). Links row under it on desktop; phones keep the links in the menu sheet.
  */
 export async function SiteHeader({ studioName, announcement }: Props) {
   const [t, locale, theme] = await Promise.all([getT(), getLocale(), getPageTheme()]);
@@ -33,12 +33,15 @@ export async function SiteHeader({ studioName, announcement }: Props) {
 
   const top = (
     <>
-      {/* The scatter layers cover the whole padded row (the slots are drawn for it) and sit
-          behind both layouts; each measures the brand and the actions that are visible. */}
+      {/* The artwork layers cover the whole padded row and sit behind both layouts; each
+          measures the brand and the actions in its own layout (marked data-header-content). */}
       <HeaderScatter theme={theme} className="hidden lg:block" />
       <HeaderScatter theme={theme} narrow className="lg:hidden" />
       {/* Desktop: empty column, brand, actions */}
-      <div className="relative mx-auto hidden w-full max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center gap-x-5 px-6 lg:grid">
+      <div
+        data-header-content
+        className="relative mx-auto hidden w-full max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center gap-x-5 px-6 lg:grid"
+      >
         <span />
         <LogoMark studioName={studioName} homeLabel={t("header.home")} />
         <div className="relative z-10 flex items-center justify-end gap-2">
@@ -57,7 +60,10 @@ export async function SiteHeader({ studioName, announcement }: Props) {
         </div>
       </div>
       {/* Phone and tablet */}
-      <div className="relative flex w-full items-center justify-between gap-2 px-3 lg:hidden">
+      <div
+        data-header-content
+        className="relative flex w-full items-center justify-between gap-2 px-3 lg:hidden"
+      >
         <MobileMenu studioName={studioName} />
         <LogoMark studioName={studioName} homeLabel={t("header.home")} size="phone" />
         <WishlistBadge />

@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { Client } from "pg";
+import { HDR, THEME_ARTWORK } from "../src/lib/themes/artwork/data";
 import { ownerEmail, ownerPassword, signInAsOwner } from "./helpers";
 
 const DESKTOP = { width: 1440, height: 900 };
@@ -42,13 +43,15 @@ function overlaps(a: Rect, b: Rect): boolean {
   return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
-/** Every placed icon's box inside a layer, in page coordinates. */
-async function iconBoxes(layer: Locator): Promise<Rect[]> {
-  return layer.evaluate((el) =>
-    [...el.querySelectorAll("svg")].map((svg) => {
-      const r = svg.getBoundingClientRect();
-      return { x: r.left + scrollX, y: r.top + scrollY, width: r.width, height: r.height };
-    }),
+/** The boxes of the icons inside a layer matching `selector`, in page coordinates. */
+async function iconBoxes(layer: Locator, selector = "svg"): Promise<Rect[]> {
+  return layer.evaluate(
+    (el, sel) =>
+      [...el.querySelectorAll(sel)].map((svg) => {
+        const r = svg.getBoundingClientRect();
+        return { x: r.left + scrollX, y: r.top + scrollY, width: r.width, height: r.height };
+      }),
+    selector,
   );
 }
 
@@ -70,16 +73,63 @@ async function pageBox(locator: Locator): Promise<Rect> {
   });
 }
 
-async function expectClear(layer: Locator, text: Locator[], what: string) {
-  await expect(layer).toHaveAttribute("data-placed", "true");
-  const icons = await iconBoxes(layer);
-  expect(icons.length, `${what}: artwork present`).toBeGreaterThan(0);
+/** Each line of the element's text and each of its links, one box each, in page coordinates. */
+async function lineBoxes(locator: Locator): Promise<Rect[]> {
+  return locator.evaluate((el) => {
+    const boxes: DOMRect[] = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (!node.textContent?.trim()) continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      boxes.push(...[...range.getClientRects()].filter((r) => r.width && r.height));
+    }
+    for (const a of el.querySelectorAll("a, button")) boxes.push(a.getBoundingClientRect());
+    return boxes.map((r) => ({
+      x: r.left + scrollX,
+      y: r.top + scrollY,
+      width: r.width,
+      height: r.height,
+    }));
+  });
+}
+
+/** The element's own box (for the collapsed header's mark: the name is hidden but still laid out). */
+async function elementBox(locator: Locator): Promise<Rect> {
+  return locator.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left + scrollX, y: r.top + scrollY, width: r.width, height: r.height };
+  });
+}
+
+async function expectClear(
+  icons: Locator,
+  text: (Locator | Rect)[],
+  what: string,
+  selector = "svg",
+) {
+  const boxes = await iconBoxes(icons, selector);
+  expect(boxes.length, `${what}: artwork present`).toBeGreaterThan(0);
   for (const t of text) {
-    const box = await pageBox(t);
-    for (const icon of icons) {
+    const box = "x" in t ? t : await pageBox(t);
+    for (const icon of boxes) {
       expect(overlaps(icon, box), `${what}: an icon sits under ${JSON.stringify(box)}`).toBe(false);
     }
   }
+}
+
+/** Every icon in the theme's set appears in the layer (hero, hangers and band count). */
+async function expectWholeSet(layer: Locator, theme: string, what: string) {
+  const set = THEME_ARTWORK[theme as keyof typeof THEME_ARTWORK].set;
+  const names = await layer.evaluate((el) => [
+    ...new Set(
+      [...el.querySelectorAll("svg[data-season-icon]")].map((s) =>
+        s.getAttribute("data-season-icon"),
+      ),
+    ),
+  ]);
+  expect(names.length, `${what}: distinct icons`).toBeGreaterThanOrEqual(set.length);
+  for (const name of set) expect(names, `${what}: ${name}`).toContain(name);
 }
 
 async function checkHome(page: Page, theme: string, viewport: { width: number; height: number }) {
@@ -87,11 +137,16 @@ async function checkHome(page: Page, theme: string, viewport: { width: number; h
   await page.goto(`/?theme=${theme}`);
   await expect(page.locator("[data-theme]").first()).toHaveAttribute("data-theme", theme);
   const phone = viewport.width < 1024;
+  const what = `${theme} ${viewport.width}`;
 
-  // Header: icons placed, never under the brand or the actions.
-  const headerLayer = page.locator('[data-surface="header"]').nth(phone ? 1 : 0);
-  const brand = page.getByTestId("site-logo").nth(phone ? 1 : 0);
+  // Header at the top of the page: the icons shown there, never under the brand or the actions.
   const header = page.getByTestId("site-header");
+  const headerLayer = page.locator('[data-surface="header"]').filter({ visible: true });
+  await expect(headerLayer).toHaveAttribute("data-placed", "true");
+  await expect(headerLayer).toHaveAttribute("data-artwork-theme", theme);
+  const AT_TOP = 'svg[data-header-state="both"], svg[data-header-state="top"]';
+  const COLLAPSED = 'svg[data-header-state="both"], svg[data-header-state="small"]';
+  const brand = page.getByTestId("site-logo").filter({ visible: true });
   const actions = phone
     ? [header.getByTestId("header-menu"), header.locator('a[href="/wishlist"]').nth(1)]
     : [
@@ -99,25 +154,64 @@ async function checkHome(page: Page, theme: string, viewport: { width: number; h
         header.locator('a[href="/wishlist"]').first(),
         header.getByRole("button", { name: /language|ভাষা/i }).first(),
       ];
-  await expectClear(headerLayer, [brand, ...actions], `header ${viewport.width}`);
-  await expect(headerLayer).toHaveAttribute("data-artwork-theme", theme);
+  await expectClear(headerLayer, [brand, ...actions], `header top ${what}`, AT_TOP);
+  // The brand stays centred in both states (the mark sits left of centre while the name shows).
+  const brandCentre = async () => {
+    const b = await elementBox(brand);
+    return b.x + b.width / 2;
+  };
+  const nearest = async (selector: string) => {
+    const centre = await brandCentre();
+    const boxes = await iconBoxes(headerLayer, selector);
+    return Math.min(...boxes.map((b) => Math.abs(b.x + b.width / 2 - centre)));
+  };
+  const nearestAtTop = await nearest(AT_TOP);
 
-  // Tag: motifs present (hangers, band or scatter), never under the text column.
+  // Scrolled past the hero: the header collapses and the same icons stay, closing in on the
+  // mark to fill the room the name gave up.
+  await page.evaluate(() => window.scrollTo({ top: 1600, behavior: "instant" }));
+  await expect(header).toHaveAttribute("data-collapsed", "true");
+  await expect(headerLayer).toHaveCSS("opacity", "1");
+  await page.waitForTimeout(500); // the 300 ms move
+  // At 390 all six; at 1440 all but the four that would land on the Book pill, which is 50px
+  // tall from 1400px (an action taller than 48px keeps its whole box clear).
+  const expected = { 1440: HDR.top.length - 4, 390: HDR.phoneTop.length }[viewport.width];
+  if (expected) await expect(headerLayer.locator(COLLAPSED)).toHaveCount(expected);
+  const opacities = await headerLayer
+    .locator(COLLAPSED)
+    .evaluateAll((els) => els.map((el) => getComputedStyle(el).opacity));
+  expect(opacities.length, `${what}: icons once collapsed`).toBeGreaterThan(0);
+  expect(new Set(opacities), `${what}: every collapsed icon visible`).toEqual(new Set(["1"]));
+  expect(await nearest(COLLAPSED), `${what}: icons close in on the mark`).toBeLessThan(
+    nearestAtTop - 30,
+  );
+  const mark = await elementBox(brand.locator('[data-placeholder="logo"]'));
+  await expectClear(headerLayer, [mark, ...actions], `header collapsed ${what}`, COLLAPSED);
+
+  // Tag: never under a line of its text or the button; every icon in the set.
   const tag = page.getByTestId("seasonal-tag");
   await tag.scrollIntoViewIfNeeded();
-  const tagLayer = tag.locator('[data-surface="tag"]');
-  await expectClear(tagLayer, [page.getByTestId("seasonal-tag-text")], `tag ${viewport.width}`);
+  const tagLayer = tag.locator('[data-surface="tag"]').filter({ visible: true });
+  await expect(tagLayer).toHaveAttribute("data-placed", "true");
+  await expectClear(
+    tagLayer,
+    await lineBoxes(page.getByTestId("seasonal-tag-text")),
+    `tag ${what}`,
+  );
+  await expectWholeSet(tagLayer, theme, `tag ${what}`);
 
-  // Footer: motifs present, clear of the link columns and the bottom line.
+  // Footer: clear of the link columns and the bottom line; every icon in the set.
   const footer = page.locator("footer");
   await footer.scrollIntoViewIfNeeded();
-  const footerLayer = footer.locator('[data-surface="footer"]');
+  const footerLayer = footer.locator('[data-surface="footer"]').filter({ visible: true });
+  await expect(footerLayer).toHaveAttribute("data-placed", "true");
   const footerText = [
     ...(await footer.locator("nav a, nav h2").all()),
     ...(await footer.locator("[data-artwork-exclude]").last().locator("p").all()),
     footer.locator("[data-artwork-exclude]").first().locator("p").first(),
   ];
-  await expectClear(footerLayer, footerText, `footer ${viewport.width}`);
+  await expectClear(footerLayer, footerText, `footer ${what}`);
+  await expectWholeSet(footerLayer, theme, `footer ${what}`);
 
   // Facts strip icons in the accent colour.
   await expect(page.getByTestId("facts-strip").locator("svg").first()).toBeVisible();
@@ -129,17 +223,18 @@ async function checkHome(page: Page, theme: string, viewport: { width: number; h
 }
 
 /**
- * Seasonal artwork (#13 follow-up): the season's motifs decorate the header, the big tag and
- * the footer, never under text, in Eid and Everyday; the dashboard has none; the owner's
- * ?theme= preview still works.
+ * Seasonal artwork (#13 follow-ups): the season's motifs decorate the header, the big tag and
+ * the footer, never under text, in Eid, Pohela Boishakh and Everyday; the header's icons stay
+ * when it collapses; the tag and footer show every icon in the theme's set; the dashboard has
+ * none; the owner's ?theme= preview still works.
  */
 test.describe("seasonal artwork", () => {
   test.skip(!ownerEmail || !ownerPassword, "Set E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD to run");
 
-  test("Eid and Everyday decorate the header, tag and footer clear of the text", async ({
+  test("the seasons decorate the header, tag and footer clear of the text", async ({
     page,
   }, testInfo) => {
-    test.setTimeout(120_000);
+    test.setTimeout(240_000);
     const previousBanner = await readSetting("seasonal_banner");
     test.skip(!previousBanner, "DATABASE_URL is needed to turn the banner on");
     try {
@@ -156,9 +251,13 @@ test.describe("seasonal artwork", () => {
       // the owner's ?theme= preview, which the artwork reads like the rest of the page.
       await signInAsOwner(page);
       const viewport = testInfo.project.name === "mobile" ? PHONE : DESKTOP;
-      for (const theme of ["eid", "everyday"]) await checkHome(page, theme, viewport);
-      // The other width too, once: the rule holds at 390 on the desktop project.
-      if (testInfo.project.name !== "mobile") await checkHome(page, "eid", PHONE);
+      for (const theme of ["eid", "pohela-boishakh", "everyday"]) {
+        await checkHome(page, theme, viewport);
+      }
+      // The phone width on the desktop project too: Eid and Pohela Boishakh at 390.
+      if (testInfo.project.name !== "mobile") {
+        for (const theme of ["eid", "pohela-boishakh"]) await checkHome(page, theme, PHONE);
+      }
     } finally {
       if (previousBanner) await writeSetting("seasonal_banner", previousBanner);
     }
@@ -177,7 +276,7 @@ test.describe("seasonal artwork", () => {
     await page.setViewportSize(DESKTOP);
     await page.goto("/?theme=valentines");
     await expect(page.locator("[data-theme]").first()).toHaveAttribute("data-theme", "valentines");
-    const layer = page.locator('[data-surface="header"]').first();
+    const layer = page.locator('[data-surface="header"]').filter({ visible: true });
     await expect(layer).toHaveAttribute("data-artwork-theme", "valentines");
     await expect(layer).toHaveAttribute("data-placed", "true");
     expect(await layer.locator("svg[data-season-icon='heartfill']").count()).toBeGreaterThan(0);
