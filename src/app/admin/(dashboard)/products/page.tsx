@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PackageIcon } from "lucide-react";
+import { EmptyState } from "@/components/admin/empty-state";
 import { ProductFilters } from "@/components/admin/product-filters";
 import { ProductTable } from "@/components/admin/product-table";
+import { PageHeader } from "@/components/admin/page-header";
 import { buttonVariants } from "@/components/ui/button";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
 import { countProducts, listProducts, type ProductListFilters } from "@/db/queries/products";
 import { listCategories } from "@/db/queries/taxonomy";
 import { productStatusEnum } from "@/db/schema";
@@ -53,33 +47,34 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
 
   return (
     <section className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.products.title")}</h1>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/admin/products/taxonomy" className={buttonVariants({ variant: "outline" })}>
-            {t("admin.products.manageTaxonomy")}
-          </Link>
-          <Link href="/admin/products/new" className={buttonVariants()}>
-            {t("admin.products.new")}
-          </Link>
-        </div>
-      </header>
-
-      {total === 0 ? (
-        <Empty className="border">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <PackageIcon />
-            </EmptyMedia>
-            <EmptyTitle>{t("admin.products.empty.title")}</EmptyTitle>
-            <EmptyDescription>{t("admin.products.empty.description")}</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
+      <PageHeader
+        title={t("admin.products.title")}
+        action={
+          <>
+            <Link
+              href="/admin/products/taxonomy"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              {t("admin.products.manageTaxonomy")}
+            </Link>
             <Link href="/admin/products/new" className={buttonVariants()}>
               {t("admin.products.new")}
             </Link>
-          </EmptyContent>
-        </Empty>
+          </>
+        }
+      />
+
+      {total === 0 ? (
+        <EmptyState
+          icon={PackageIcon}
+          title={t("admin.products.empty.title")}
+          hint={t("admin.products.empty.description")}
+          action={
+            <Link href="/admin/products/new" className={buttonVariants()}>
+              {t("admin.products.new")}
+            </Link>
+          }
+        />
       ) : (
         <>
           <ProductFilters

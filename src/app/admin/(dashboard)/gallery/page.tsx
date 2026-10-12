@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { ImagesIcon } from "lucide-react";
+import { EmptyState } from "@/components/admin/empty-state";
 import { ReviewList, type ReviewCard } from "@/components/admin/gallery/review-list";
 import { ReviewTabs } from "@/components/admin/gallery/review-tabs";
+import { PageHeader } from "@/components/admin/page-header";
 import { listGalleryByStatus, type GalleryStatus } from "@/db/queries/gallery";
 import { GALLERY_PENDING_BUCKET, GALLERY_PUBLIC_BUCKET } from "@/lib/gallery/storage";
 import { requireOwner } from "@/lib/auth";
@@ -63,10 +66,7 @@ export default async function GalleryAdminPage({ searchParams }: PageProps<"/adm
 
   return (
     <section className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.gallery.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("admin.gallery.description")}</p>
-      </header>
+      <PageHeader title={t("admin.gallery.title")} description={t("admin.gallery.description")} />
       <ReviewTabs
         counts={{
           pending: pendingRows.length,
@@ -75,9 +75,12 @@ export default async function GalleryAdminPage({ searchParams }: PageProps<"/adm
         }}
       />
       {cards.length === 0 ? (
-        <p className="text-muted-foreground text-sm" data-testid="review-empty">
-          {t(`admin.gallery.empty.${tab}`)}
-        </p>
+        <EmptyState
+          icon={ImagesIcon}
+          title={t(`admin.gallery.empty.${tab}`)}
+          hint={t(`admin.empty.gallery.${tab}`)}
+          data-testid="review-empty"
+        />
       ) : (
         <ReviewList cards={cards} />
       )}

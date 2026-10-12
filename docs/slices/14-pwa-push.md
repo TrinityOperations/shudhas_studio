@@ -51,7 +51,7 @@ Part a (PWA install + push) is built; part b (dashboard design pass, nav redesig
 - [ ] Push arrives within a minute of a new booking (built; to confirm on real phones, see below)
 - [x] `pnpm lint && pnpm typecheck && pnpm test` pass (CI on the PR)
 - [x] Works at phone width and by keyboard (the card is one section with plain buttons)
-- [ ] Part b: dashboard design pass and nav redesign (Gallery under More)
+- [x] Part b: dashboard design pass and nav redesign (Gallery under More): bottom tab bar and `/admin/more` on phones, sidebar on desktop, shared `PageHeader` and `EmptyState`, dashboard home cards (Today, Waiting, Upcoming, Photos to review, Quick actions), safe-area insets for the installed app
 
 ## Testing push on a phone
 Push needs HTTPS and a real device; Playwright covers the install shell only.

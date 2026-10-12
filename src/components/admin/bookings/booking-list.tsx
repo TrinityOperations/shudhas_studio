@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { CalendarDaysIcon } from "lucide-react";
+import { CopyLinkButton } from "@/components/admin/copy-link-button";
+import { EmptyState } from "@/components/admin/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -15,6 +18,44 @@ import type { MessageKey } from "@/lib/i18n/t";
 import { formatMelbourne } from "@/lib/time";
 import { adminBookingsHref, type AdminBookingListParams } from "./list-params";
 import { StatusBadge } from "./status-badge";
+
+/**
+ * What an empty tab says: a fresh studio gets the booking link to share; a filtered or past
+ * tab just says so.
+ */
+export async function BookingsEmpty({ params }: { params: AdminBookingListParams }) {
+  const t = await getT();
+  const filtered = Boolean(params.q || params.status);
+  if (filtered) {
+    return (
+      <EmptyState
+        icon={CalendarDaysIcon}
+        title={t("admin.bookings.empty")}
+        hint={t("admin.empty.bookingsFiltered")}
+        data-testid="bookings-empty"
+      />
+    );
+  }
+  if (params.tab === "upcoming") {
+    return (
+      <EmptyState
+        icon={CalendarDaysIcon}
+        title={t("admin.empty.bookingsTitle")}
+        hint={t("admin.empty.bookingsHint")}
+        action={<CopyLinkButton path="/book" />}
+        data-testid="bookings-empty"
+      />
+    );
+  }
+  return (
+    <EmptyState
+      icon={CalendarDaysIcon}
+      title={t("admin.bookings.empty")}
+      hint={t(`admin.empty.bookings.${params.tab}`)}
+      data-testid="bookings-empty"
+    />
+  );
+}
 
 /** Name with the business marker (decision: corporate enquiries stand out before opening). */
 export async function CustomerCell({ row }: { row: AdminBookingRow }) {
@@ -51,13 +92,6 @@ export async function BookingRows({ rows }: { rows: AdminBookingRow[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-muted-foreground py-10 text-center">
-                {t("admin.bookings.empty")}
-              </TableCell>
-            </TableRow>
-          ) : null}
           {rows.map((row) => (
             <TableRow key={row.id}>
               <TableCell className="whitespace-nowrap">
@@ -98,7 +132,11 @@ export async function BookingList({
   const t = await getT();
   return (
     <div className="space-y-4">
-      <BookingRows rows={page.items} />
+      {page.items.length === 0 ? (
+        <BookingsEmpty params={params} />
+      ) : (
+        <BookingRows rows={page.items} />
+      )}
       {page.pageCount > 1 ? (
         <nav
           aria-label={t("catalogue.pagination.label")}

@@ -109,7 +109,10 @@ test.describe("customer gallery", () => {
     const owner = await context.newPage();
     await signInAsOwner(owner);
     await owner.goto("/admin/gallery");
-    await expect(owner.getByTestId("gallery-badge")).toBeVisible();
+    // The count sits in the sidebar on desktop and on the More tab on phones.
+    await expect(
+      owner.locator('[data-testid="gallery-badge"]:visible, [data-testid="more-badge"]:visible'),
+    ).toBeVisible();
     const card = owner.getByTestId("review-card").filter({ hasText: firstName });
     await expect(card).toBeVisible();
     await expect(card.locator("img")).toHaveAttribute("src", /gallery-pending/);

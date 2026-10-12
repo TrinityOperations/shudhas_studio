@@ -1,10 +1,12 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CalendarOffIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { addBlockedPeriod, deleteBlockedPeriod } from "@/actions/availability";
+import { EmptyState } from "@/components/admin/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FieldMessage } from "@/components/shared/field-message";
 import { SubmitButton } from "@/components/shared/submit-button";
@@ -54,7 +56,11 @@ export function BlockedPeriods({ items }: { items: BlockedPeriodItem[] }) {
     <div className="space-y-6">
       <p className="text-muted-foreground text-sm">{t("admin.availability.blocked.hint")}</p>
       {items.length === 0 ? (
-        <p className="text-muted-foreground text-sm">{t("admin.availability.blocked.empty")}</p>
+        <EmptyState
+          icon={CalendarOffIcon}
+          title={t("admin.availability.blocked.empty")}
+          hint={t("admin.empty.blockedHint")}
+        />
       ) : (
         <ul className="divide-y rounded-lg border">
           {items.map((item) => (

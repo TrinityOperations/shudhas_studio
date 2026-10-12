@@ -113,7 +113,8 @@ test.describe("booking management", () => {
     expect(newDate).not.toBe(bookedDate);
     await page.getByRole("button", { name: /^move booking$/i }).click();
     await expect(page.getByText(/booking moved/i)).toBeVisible();
-    await expect(page.locator("header")).toContainText(newDate.split(" ")[1]); // day number
+    // The page header inside main (the dashboard top bar is a header too).
+    await expect(page.locator("main header")).toContainText(newDate.split(" ")[1]); // day number
 
     // Calendar shows the day with a count
     const month = new Date().toISOString().slice(0, 7);

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { BlockedPeriods } from "@/components/admin/availability/blocked-periods";
 import { BookingSettingsForm } from "@/components/admin/availability/booking-settings-form";
 import { WeeklyHoursForm } from "@/components/admin/availability/weekly-hours-form";
+import { PageHeader } from "@/components/admin/page-header";
 import {
   getBookingSettings,
   listAvailabilityRules,
@@ -36,10 +37,10 @@ export default async function AvailabilityPage() {
 
   return (
     <div className="space-y-12">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("admin.availability.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("admin.availability.description")}</p>
-      </header>
+      <PageHeader
+        title={t("admin.availability.title")}
+        description={t("admin.availability.description")}
+      />
 
       <section className="space-y-4" aria-labelledby="hours-heading">
         <h2 id="hours-heading" className="text-xl font-semibold tracking-tight">

@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { updateThemeSchedule } from "@/actions/settings";
 import { FieldMessage } from "@/components/shared/field-message";
 import { SubmitButton } from "@/components/shared/submit-button";
+import { CalendarRangeIcon } from "lucide-react";
+import { EmptyState } from "@/components/admin/empty-state";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -65,7 +67,11 @@ export function ScheduleForm({ defaultValues }: { defaultValues: ThemeScheduleFo
         <p className="text-muted-foreground text-sm">{t("admin.themes.schedule.hint")}</p>
       </div>
       {fields.length === 0 ? (
-        <p className="text-muted-foreground text-sm">{t("admin.themes.schedule.empty")}</p>
+        <EmptyState
+          icon={CalendarRangeIcon}
+          title={t("admin.themes.schedule.empty")}
+          hint={t("admin.empty.scheduleHint")}
+        />
       ) : null}
       <ul className="space-y-4">
         {fields.map((item, index) => {
