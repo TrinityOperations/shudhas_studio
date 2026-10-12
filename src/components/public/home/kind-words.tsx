@@ -18,7 +18,7 @@ export async function KindWords({ testimonials }: { testimonials: Testimonial[] 
         {testimonials.map((item) => (
           <li
             key={item.id}
-            className="border-line flex flex-col justify-between gap-6 border bg-white p-7"
+            className="border-line bg-ivory flex flex-col justify-between gap-6 border p-7"
           >
             <blockquote className="font-heading text-ink text-[21px] leading-snug">
               {localised(locale, item.quote, item.quoteBn)}

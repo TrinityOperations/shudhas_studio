@@ -18,8 +18,9 @@ export function MobileMenu({ studioName }: { studioName: string }) {
         type="button"
         variant="ghost"
         size="icon-lg"
-        className="size-11"
+        className="relative z-10 size-11"
         aria-label={t("header.menu")}
+        data-artwork-exclude="text"
         aria-expanded={open}
         onClick={() => setOpen(true)}
         data-testid="header-menu"

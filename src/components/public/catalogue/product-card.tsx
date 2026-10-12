@@ -26,7 +26,7 @@ export async function ProductCard({ product, priority = false }: Props) {
 
   return (
     <article className="group relative flex flex-col gap-2">
-      <div className="border-line relative aspect-[4/5] overflow-hidden border bg-white">
+      <div className="border-line bg-ivory relative aspect-[4/5] overflow-hidden border">
         <div className="absolute top-2 right-2 z-10">
           <WishlistButton slug={product.slug} title={title} />
         </div>

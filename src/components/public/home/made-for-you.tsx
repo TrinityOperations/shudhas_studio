@@ -18,7 +18,7 @@ export async function MadeForYou({ photo, editing = false }: Props) {
       aria-labelledby="made-heading"
       className="mx-auto w-full max-w-7xl px-4 py-6 lg:px-6 lg:py-10"
     >
-      <div className="border-line flex flex-wrap border bg-white">
+      <div className="border-line bg-ivory flex flex-wrap border">
         <div
           className="relative min-h-[260px] flex-[1_1_400px] lg:min-h-[520px]"
           data-testid="made-for-you-photo"
@@ -56,7 +56,7 @@ export async function MadeForYou({ photo, editing = false }: Props) {
               <li key={key} className="flex items-center gap-4">
                 <span
                   aria-hidden
-                  className="bg-mark grid size-[30px] shrink-0 place-items-center rounded-full text-sm font-semibold text-white"
+                  className="bg-mark text-ivory grid size-[30px] shrink-0 place-items-center rounded-full text-sm font-semibold"
                 >
                   {i + 1}
                 </span>

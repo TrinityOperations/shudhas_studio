@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EditorProvider } from "@/components/admin/home-editor/editor-provider";
+import { SeasonIconSprite } from "@/components/public/artwork/season-icon";
 import { HomeSections } from "@/components/public/home/home-sections";
 import { getHomeSettingsFull } from "@/db/queries/settings";
 import { listTaxonomy } from "@/db/queries/taxonomy";
@@ -7,6 +8,7 @@ import { requireOwner } from "@/lib/auth";
 import { getT } from "@/lib/i18n";
 import { getActiveTheme } from "@/lib/themes/active";
 import { themeRootProps } from "@/lib/themes/apply";
+import { artworkIconNames } from "@/lib/themes/artwork/names";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -29,6 +31,7 @@ export default async function HomeEditorPage() {
   const dirty = JSON.stringify(home.draft) !== JSON.stringify(home.published);
   return (
     <div {...themeRootProps(active.theme)} className="flex min-h-full flex-1 flex-col">
+      <SeasonIconSprite names={artworkIconNames(active.theme.id)} />
       <EditorProvider initialDirty={dirty} taxonomy={taxonomy}>
         <main id="main" className="flex-1">
           <HomeSections home={home.draft} editing />

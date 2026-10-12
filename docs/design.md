@@ -12,22 +12,26 @@ CSS variables in `globals.css`. Components never use raw hex. Seasonal themes (#
 
 | Token | Hex | Use |
 | --- | --- | --- |
-| paper | #FBF9F6 | page ground, header, announcement strip |
-| white | #FFFFFF | tags, product photos, cards, "Made just for you" panel |
+| paper | #F5EFE4 | page ground, header |
+| ivory | #FBF8F2 | tags, cards, buttons, the "Made just for you" panel, footer text, the tag's hole ring (replaces pure white everywhere public) |
+| linen | #EFE7D8 | announcement strip |
+| white | #FFFFFF | only for things that must be pure white; nothing public uses it |
 | mist | #EDF0EA | soft tags, image placeholders, Bengali panel |
-| line | #E3DDD3 | borders, dividers |
+| line | #E3DACB | borders, dividers, the header's hairlines |
 | ink | #2A2420 | text, outlined buttons |
 | ink-soft | #4E4740 | hero and section sub text |
-| muted | #6B635B | categories, captions, small text (≥ 4.5:1 on paper and mist) |
-| accent (Bengal green) | #1E4A3A | primary buttons, seasonal banner, footer, chips when on, link hover |
+| muted | #6B635B | categories, captions, small text (≥ 4.5:1 on paper, linen, ivory and mist) |
+| accent (Bengal green) | #1E4A3A | primary buttons, seasonal banner, footer, chips when on, link hover, the facts strip's icons, the header scatter |
 | mark (sindoor) | #C2402A | thread, dots, step numbers, saved heart, Bangla accent lines |
 | scrim | rgba(26,22,19,…) | dark overlays on photos (signature panel gradient 0.75 → 0.1) |
 
-Seasonal accents for #13: Everyday Bengal green #1E4A3A, Eid indigo #2D4356, Wedding season plum #5B3F4E, Christmas and New Year garnet #6E2B2B. `mark` stays sindoor in every theme.
+Neutrals moved off pure white on 12 Oct 2026 (approved with the seasonal artwork): paper was #FBF9F6, line #E3DDD3, and ivory replaced #FFFFFF. Every theme accent keeps ≥ 7:1 against ivory (unit test).
+
+Seasonal accents for #13: Everyday Bengal green #1E4A3A, Eid indigo #2D4356, Pohela Boishakh #9A2B22, Wedding season plum #5B3F4E, Christmas and New Year garnet #6E2B2B, Mother's Day #6B4A5E, Valentine's #8A2E45. `mark` stays sindoor in every theme. Each theme also has a `deco` colour for its motifs (`src/lib/themes/artwork/data.ts`).
 
 Map the shadcn variables onto these so the dashboard follows without its own styling: `--background` paper, `--foreground` ink, `--primary` accent, `--primary-foreground` white, `--border` line, `--muted` mist, `--muted-foreground` muted, `--ring` accent.
 
-In `globals.css` the accent is the variable `--brand-accent` (shadcn already uses `--accent` for its hover surface), mapped onto `--primary`; #13 swaps `--brand-accent` only. The other tokens are `--paper`, `--white`, `--mist`, `--line`, `--ink`, `--ink-soft`, `--muted-text`, `--mark` and `--scrim`, exposed to Tailwind as `bg-paper`, `text-ink`, `text-mark`, `bg-mist`, `border-line`, `bg-brand`, `from-scrim/75` and so on.
+In `globals.css` the accent is the variable `--brand-accent` (shadcn already uses `--accent` for its hover surface), mapped onto `--primary`; #13 swaps `--brand-accent` only. The other tokens are `--paper`, `--ivory`, `--linen`, `--white`, `--mist`, `--line`, `--ink`, `--ink-soft`, `--muted-text`, `--mark` and `--scrim`, exposed to Tailwind as `bg-paper`, `text-ink`, `text-mark`, `bg-mist`, `border-line`, `bg-brand`, `from-scrim/75` and so on.
 
 ## Type
 - Headings: **Eczar** (Google Fonts via `next/font`, weights 400 and 500, latin). Display 38–58 (`clamp(38px, 4.4vw, 58px)`), section headings 40 (30 on phones), feature headings 44, product titles 20, quotes 21–22, facts strip 22. Letter-spacing −0.01em on display sizes.
@@ -45,6 +49,8 @@ In `globals.css` the accent is the variable `--brand-accent` (shadcn already use
 - **Carousel controls:** 44px round white buttons with a line border, chevron icons; carousels snap-scroll, scrollbar hidden, swipe on phones.
 
 ## Header
+Two rows since the seasonal artwork (12 Oct 2026). Top row: the mark and "Shudha's Studio" centred; wishlist heart, বাংলা and Book on the right (hamburger and heart on phones); behind it a faint scatter of the season's icons. Links row under it, narrow and centred, with a hairline above and below; it stays when the top row collapses. Phones have no links row (the menu sheet holds the links). The collapsed height is `--header-collapsed-height` in `globals.css` (top row 64px + links row 40px + 2px of hairlines on desktop; 65px on phones); the signature panel's `top` and the editor's bar read it.
+
 Sticky, paper background, 1px line underneath. Desktop is a three-column grid:
 - Left: nav Occasions · All gifts · Custom order · Happy customers · About Shudha (15px, weight 500).
 - Centre: the logo mark (40px circle; a placeholder "S" in `mark` until her logo file arrives) with "Shudha's Studio" in Eczar 30 beside it.
@@ -70,6 +76,16 @@ Above the header: the **announcement strip** (paper, 1px line below, 14px text w
 11. **Follow the studio** (PW-07). Heading 40 with two outlined pill buttons on the right, each with its icon: "@shudhas.studio" (Instagram) and "Facebook". Below, a collage: 6-column grid, 190px rows, 16px gap, ten slots — (cols 1–2, rows 1–2) · (3–4, 1) · (5, 1) · (6, rows 1–2) · (3, 2, round) · (4–5, 2) · (1, 3) · (2–3, 3) · (4, 3, pill) · (5–6, 3). Phone: 3 columns, 116px rows, 8px gap, seven slots — (1–2, rows 1–2) · (3, 1) · (3, 2, round) · (1, 3) · (2–3, 3) · (1–2, 4) · (3, 4). Slots are site images (editor in #10), not a live feed; empty slots are mist. Links come from the social settings.
 12. **Footer.** `accent` background, white text (86% for links): wordmark in Eczar 30, tagline "Personalised gifts, handmade in Melbourne.", Facebook / Instagram / WhatsApp icon links; columns Shop (Occasions, All gifts, Custom order, Wishlist), Studio (About Shudha, How it works, Happy customers, Questions), Help (Contact, Delivery and pickup, Privacy, Terms); bottom line "© 2026 Shudha's Studio, Melbourne" and "English | বাংলা" over a 25% white rule.
 13. **Chat on WhatsApp** (PW-47). Fixed bottom-right on every public page: white pill, line border, shadow `0 8px 24px rgba(42,36,32,0.14)`, WhatsApp icon + "Chat on WhatsApp"; a round icon-only button on phones. `whatsappLink()` with the studio number from the `contact` settings; hidden when no number is set; never covers content at 360px.
+
+## Seasonal artwork (approved 12 Oct 2026; built on issue #13)
+Thirty-eight original line icons on a 48×48 viewBox (`src/lib/themes/artwork/icons.ts`: stroke path with a non-scaling 1.4px stroke, optional filled path, a label for the registry only). Per theme (`data.ts`): the `deco` colour, the header icons and filler, and for the big tag and the footer a large signature motif, a scatter, hangers (lanterns, baubles, marigold garlands) from the top edge and a pattern band along one edge, each in the deco colour or ivory at its own opacity. Everyday keeps the kantha flower and needle so the tag is never bare.
+
+- **Header:** the scatter sits in the accent colour, stroke 1.4, opacity 0.34, sizes 10–22px, each slightly rotated, inside the part of the top row that fades with the wordmark. Phones get eight small icons beside the brand and around the two buttons.
+- **Placement rule, everywhere:** never under text. Positions in the data are percentages of their box; at run time `placeScatter` (`src/lib/themes/artwork/place.ts`) drops any icon whose box plus a 6px margin meets an exclusion box. Exclusions are measured after mount from elements marked `data-artwork-exclude`: the brand (full row height), each action's text band (24px around its centre), the tag's text block (its full width from its top down to the band strip; from lg the block is 560px anchored after the hole, so the right third of the tag is free for the signature motif; on phones it is the full centred block and only hangers and the band remain), the footer's brand block, link columns and bottom line. The layer is server-rendered empty, so nothing shifts, and the surviving icons fade in.
+- **Sprite:** the public layout renders one hidden `<svg>` of `<symbol>`s for exactly the icons the active theme can use; every motif is a `<use>`. The home page editor renders the same sprite, because it shows the real tag and footer.
+- **Announcement strip:** plain text with the sindoor dot on linen, no icons. **Facts strip:** each fact's line icon in the accent before the text; the marquee's motion rules are unchanged.
+- **Accessibility:** every artwork element is `aria-hidden`, ignores the pointer, is outside the tab order and names nothing. **Motion:** only the header fade and the fade-in, both instant under reduced motion.
+- **Never on the dashboard:** the dashboard and the editor's own chrome stay Bengal green without artwork; the editor's page content shows the artwork as the site does.
 
 ## Motion
 Framer Motion. Everything below is off under `prefers-reduced-motion`, which also shows the poster instead of the video.

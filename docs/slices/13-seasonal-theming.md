@@ -56,5 +56,8 @@ If the answer isn't in yet, build with sensible defaults the owner can change, a
 - [x] `pnpm lint && pnpm typecheck && pnpm test` pass (CI on the PR)
 - [x] Works at phone width and by keyboard (e2e arrows across the cards)
 
+## Follow-up: seasonal artwork (12 Oct 2026, branch `feat/13-artwork`)
+Per-theme motifs on the header, the big tag and the footer, icons in the facts strip, neutrals moved off pure white. Data in `src/lib/themes/artwork/`, components in `src/components/public/artwork/`, the rule and tests in `place.ts`; see `docs/design.md`, "Seasonal artwork". Playwright: `e2e/artwork.spec.ts`.
+
 ## Hand-off to later slices
 None. The season list in `src/lib/themes/themes.ts` is a placeholder until the client confirms; adding or removing one is a single entry there plus its `admin.themes.name.<id>` key.

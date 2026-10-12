@@ -27,7 +27,7 @@ export default async function HowItWorksPage() {
           <li key={n} className="flex gap-4">
             <span
               aria-hidden
-              className="bg-mark grid size-[30px] shrink-0 place-items-center rounded-full text-sm font-semibold text-white"
+              className="bg-mark text-ivory grid size-[30px] shrink-0 place-items-center rounded-full text-sm font-semibold"
             >
               {n}
             </span>
