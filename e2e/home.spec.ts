@@ -219,10 +219,34 @@ test.describe("home page and site chrome", () => {
       await expect(header).toHaveAttribute("data-collapsed", "false");
       await expect(name).toHaveCSS("opacity", "1");
 
-      // A page without a hero never collapses.
-      await visitor.goto("/products");
-      await expect(visitor.getByTestId("site-header")).toHaveAttribute("data-collapsed", "false");
-      await expect(visitor.getByTestId("site-name").nth(mobile ? 1 : 0)).toBeVisible();
+      // Other pages start expanded (the name is back) and collapse once scrolled halfway.
+      // Click through so the layout-persisted header re-binds; a full goto would remount it.
+      await visitor.mouse.wheel(0, 1200);
+      await expect(header).toHaveAttribute("data-collapsed", "true");
+      if (mobile) {
+        await visitor.getByTestId("header-menu").click();
+        await visitor.getByRole("dialog").getByRole("link", { name: /all gifts/i }).click();
+      } else {
+        await visitor
+          .getByRole("navigation", { name: /menu/i })
+          .getByRole("link", { name: /all gifts/i })
+          .click();
+      }
+      await expect(visitor).toHaveURL(/\/products/);
+      await expect(header).toHaveAttribute("data-collapsed", "false");
+      await expect(name).toHaveCSS("opacity", "1");
+      const mid = await visitor.evaluate(() => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        return Math.round(max / 2);
+      });
+      if (mid > 0) {
+        await visitor.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), mid);
+        await expect(header).toHaveAttribute("data-collapsed", "true");
+      }
+      await visitor.getByTestId("site-logo").nth(mobile ? 1 : 0).click();
+      await expect(visitor).toHaveURL("/");
+      await expect(header).toHaveAttribute("data-collapsed", "false");
+      await expect(name).toHaveCSS("opacity", "1");
 
       if (mobile) {
         // Phone menu: opens, nav is there, Book works by keyboard.
