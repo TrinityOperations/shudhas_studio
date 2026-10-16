@@ -225,7 +225,10 @@ test.describe("home page and site chrome", () => {
       await expect(header).toHaveAttribute("data-collapsed", "true");
       if (mobile) {
         await visitor.getByTestId("header-menu").click();
-        await visitor.getByRole("dialog").getByRole("link", { name: /all gifts/i }).click();
+        await visitor
+          .getByRole("dialog")
+          .getByRole("link", { name: /all gifts/i })
+          .click();
       } else {
         await visitor
           .getByRole("navigation", { name: /menu/i })
@@ -243,7 +246,10 @@ test.describe("home page and site chrome", () => {
         await visitor.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), mid);
         await expect(header).toHaveAttribute("data-collapsed", "true");
       }
-      await visitor.getByTestId("site-logo").nth(mobile ? 1 : 0).click();
+      await visitor
+        .getByTestId("site-logo")
+        .nth(mobile ? 1 : 0)
+        .click();
       await expect(visitor).toHaveURL("/");
       await expect(header).toHaveAttribute("data-collapsed", "false");
       await expect(name).toHaveCSS("opacity", "1");

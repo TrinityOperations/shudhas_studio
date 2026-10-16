@@ -158,7 +158,7 @@ export function Hero({ poster, videoPath, slots = [] }: Props) {
             prefetch={false}
             className={cn(
               buttonVariants({ size: "lg" }),
-              "h-auto rounded-full bg-ivory px-4 py-2.5 text-[15px] text-ink shadow-[0_8px_20px_color-mix(in_srgb,var(--scrim)_28%,transparent)] hover:bg-ivory",
+              "bg-ivory text-ink hover:bg-ivory h-auto rounded-full px-4 py-2.5 text-[15px] shadow-[0_8px_20px_color-mix(in_srgb,var(--scrim)_28%,transparent)]",
             )}
           >
             {t("home.hero.book")}

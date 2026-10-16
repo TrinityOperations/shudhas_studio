@@ -234,7 +234,10 @@ test.describe("header collapse", () => {
         .click();
     } else {
       await page.getByTestId("header-menu").click();
-      await page.getByRole("dialog").getByRole("link", { name: /all gifts/i }).click();
+      await page
+        .getByRole("dialog")
+        .getByRole("link", { name: /all gifts/i })
+        .click();
     }
     await expect(page).toHaveURL(/\/products/);
     await expect(page.getByTestId("site-header")).toHaveAttribute("data-collapsed", "false");
@@ -249,7 +252,10 @@ test.describe("header collapse", () => {
     await scrollTo(page, mid);
     await expect(page.getByTestId("site-header")).toHaveAttribute("data-collapsed", "true");
 
-    await page.getByTestId("site-logo").nth(desktop ? 0 : 1).click();
+    await page
+      .getByTestId("site-logo")
+      .nth(desktop ? 0 : 1)
+      .click();
     await expect(page).toHaveURL("/");
     await expect(page.getByTestId("site-header")).toHaveAttribute("data-collapsed", "false");
     await expect(name).toHaveCSS("opacity", "1");
