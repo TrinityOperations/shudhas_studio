@@ -358,18 +358,24 @@ html[lang="bn"] .font-bangla {
     }
   }
 
-  /* Frosted welcome card over the hero video (docs/design.md, hero). */
-  .frosted {
-    background: color-mix(in srgb, var(--paper) 85%, transparent);
-    border: 1px solid color-mix(in srgb, var(--ivory) 60%, transparent);
-    box-shadow: 0 24px 60px color-mix(in srgb, var(--scrim) 25%, transparent);
+  /* Welcome type over the hero video (docs/design.md, hero): a scrim, then a shadow
+     under the words so they stay readable when the frame is light. */
+  .hero-scrim {
+    background: linear-gradient(
+      to top,
+      color-mix(in srgb, var(--scrim) 45%, transparent),
+      color-mix(in srgb, var(--scrim) 8%, transparent) 62%,
+      transparent
+    );
   }
-  @supports (backdrop-filter: blur(1px)) {
-    .frosted {
-      background: color-mix(in srgb, var(--paper) 40%, transparent);
-      backdrop-filter: blur(28px) saturate(1.2);
-      -webkit-backdrop-filter: blur(28px) saturate(1.2);
-    }
+  .hero-copy {
+    text-shadow:
+      0 1px 1px color-mix(in srgb, var(--scrim) 63%, transparent),
+      0 2px 12px color-mix(in srgb, var(--scrim) 63%, transparent),
+      0 16px 32px color-mix(in srgb, var(--scrim) 52%, transparent);
+  }
+  .hero-accent {
+    color: color-mix(in srgb, var(--ivory) 68%, var(--mark));
   }
 }
 

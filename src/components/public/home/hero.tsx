@@ -1,4 +1,5 @@
 "use client";
+import { cn } from "cn";
 import { motion, useReducedMotion } from "framer-motion";
 import { PauseIcon, PlayIcon } from "lucide-react";
 import Image from "next/image";
@@ -28,7 +29,8 @@ function prefersLessData(): boolean {
 }
 
 /**
- * PW-01: full-bleed looping video (poster first, the LCP image) with the frosted welcome card.
+ * PW-01: full-bleed looping video (poster first, the LCP image) with the welcome type
+ * on a bottom scrim. A shadow under the words keeps them readable on a light frame.
  * Reduced motion shows the poster only; so do Save-Data and pages without a video yet.
  */
 export function Hero({ poster, videoPath, slots = [] }: Props) {
@@ -126,34 +128,45 @@ export function Hero({ poster, videoPath, slots = [] }: Props) {
         </button>
       ) : null}
 
-      <div className="hero-rise frosted absolute inset-x-4 bottom-6 max-w-[640px] rounded-[14px] p-6 sm:left-8 sm:p-10 lg:bottom-12 lg:left-12 lg:rounded-2xl lg:px-14 lg:py-12">
+      <div className="hero-scrim pointer-events-none absolute inset-x-0 bottom-0 h-[62%]" />
+      <div className="hero-rise absolute right-4 bottom-12 left-4 max-w-[34rem] sm:right-auto lg:bottom-16 lg:left-12">
         {/* The accent line mirrors the page: Bangla on English pages, English on Bengali ones. */}
         {locale === "bn" ? (
-          <p lang="en" className="text-mark text-[22px] font-[var(--font-eczar),Georgia,serif]">
+          <p
+            lang="en"
+            className="hero-copy hero-accent text-[15px] font-[var(--font-eczar),Georgia,serif]"
+          >
             {t("home.hero.bangla")}
           </p>
         ) : (
-          <p lang="bn" className="font-bangla text-mark text-[22px]">
+          <p lang="bn" className="hero-copy hero-accent font-bangla text-[15px]">
             {t("home.hero.bangla")}
           </p>
         )}
         <h1
           id="hero-heading"
-          className="font-heading text-ink mt-2 text-[clamp(38px,4.4vw,58px)] leading-[1.05] tracking-[-0.01em]"
+          className="hero-copy font-heading text-ivory mt-1.5 text-[clamp(32px,4vw,48px)] leading-[1.05] tracking-[-0.01em]"
         >
           {t("home.hero.title")}
         </h1>
-        <p className="text-ink-soft mt-4 max-w-prose text-[17px] lg:text-lg">
+        <p className="hero-copy text-ivory mt-3 max-w-[36ch] text-[15px] leading-snug lg:text-base">
           {t("home.hero.sub")}
         </p>
-        <div className="mt-6 flex flex-wrap items-center gap-4">
-          <Link href="/book" prefetch={false} className={buttonVariants({ size: "lg" })}>
+        <div className="mt-5 flex flex-wrap items-center gap-4">
+          <Link
+            href="/book"
+            prefetch={false}
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "bg-ivory text-ink hover:bg-ivory h-auto rounded-full px-4 py-2.5 text-[15px] shadow-[0_8px_20px_color-mix(in_srgb,var(--scrim)_28%,transparent)]",
+            )}
+          >
             {t("home.hero.book")}
           </Link>
           <Link
             href="/custom-order"
             prefetch={false}
-            className="text-ink text-[15px] font-medium underline underline-offset-[5px]"
+            className="hero-copy text-ivory text-[15px] font-medium underline underline-offset-[5px]"
           >
             {t("home.hero.custom")}
           </Link>
