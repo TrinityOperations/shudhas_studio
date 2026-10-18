@@ -217,4 +217,50 @@ test.describe("header collapse", () => {
     expect(late, "icons still moving at 50 ms").toEqual([]);
     expect(Math.abs(mid.markX - end.markX)).toBeLessThanOrEqual(1);
   });
+
+  test("other pages start with the name, collapse halfway, and coming home expands again", async ({
+    page,
+  }, testInfo) => {
+    await open(page, testInfo.project.name);
+    const at = await boundary(page);
+    await scrollTo(page, at + 80);
+    await expect(page.getByTestId("site-header")).toHaveAttribute("data-collapsed", "true");
+
+    const desktop = testInfo.project.name === "chromium";
+    if (desktop) {
+      await page
+        .getByRole("navigation", { name: /menu/i })
+        .getByRole("link", { name: /all gifts/i })
+        .click();
+    } else {
+      await page.getByTestId("header-menu").click();
+      await page
+        .getByRole("dialog")
+        .getByRole("link", { name: /all gifts/i })
+        .click();
+    }
+    await expect(page).toHaveURL(/\/products/);
+    await expect(page.getByTestId("site-header")).toHaveAttribute("data-collapsed", "false");
+    const name = page.getByTestId("site-name").nth(desktop ? 0 : 1);
+    await expect(name).toHaveCSS("opacity", "1");
+
+    const mid = await page.evaluate(() => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      return Math.round(max / 2);
+    });
+    expect(mid, "products page is long enough to collapse").toBeGreaterThan(0);
+    await scrollTo(page, mid);
+    await expect(page.getByTestId("site-header")).toHaveAttribute("data-collapsed", "true");
+
+    await page
+      .getByTestId("site-logo")
+      .nth(desktop ? 0 : 1)
+      .click();
+    await expect(page).toHaveURL("/");
+    await expect(page.getByTestId("site-header")).toHaveAttribute("data-collapsed", "false");
+    await expect(name).toHaveCSS("opacity", "1");
+    const homeAt = await boundary(page);
+    await scrollTo(page, homeAt + 80);
+    await expect(page.getByTestId("site-header")).toHaveAttribute("data-collapsed", "true");
+  });
 });
